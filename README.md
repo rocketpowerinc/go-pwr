@@ -11,7 +11,7 @@ To install the Go Power application, ensure that you have Go installed on your c
 Once Go is installed, set your GOPATH correctly. Then, run the following command in your terminal:
 
 ```bash
-go install -v github.com/rocketpowerinc/go-pwr
+go install -v github.com/rocketpowerinc/go-pwr@latest
 ```
 
 This command will compile the application and place the executable in your `$GOPATH/bin` directory.
@@ -20,9 +20,8 @@ This command will compile the application and place the executable in your `$GOP
 
 After installation, you can run the application from any directory by executing:
 
-```bash
-go-pwr
-```
+`go-pwr` or call it directly `~/go/bin/go-pwr`
+
 
 ## Contributing
 
