@@ -50,7 +50,8 @@ type model struct {
 
 type outputMsg string
 
-var pink = lipgloss.Color("205") // ANSI pink, or use "#ff69b4" for hex
+var pink = lipgloss.Color("205") // ANSI pink
+var purple = lipgloss.Color("93") // ANSI purple
 
 var tabColors = []lipgloss.TerminalColor{
 	pink, // Scripts - pink
@@ -280,6 +281,29 @@ func (m model) View() string {
 	)
 }
 
+type scriptDelegate struct{}
+
+func (d scriptDelegate) Render(w, h int, item list.Item, selected bool) string {
+	s, ok := item.(scriptItem)
+	if !ok {
+		return ""
+	}
+	var style lipgloss.Style
+	if strings.HasSuffix(s.name, "/") {
+		style = lipgloss.NewStyle().Foreground(purple)
+	} else {
+		style = lipgloss.NewStyle().Foreground(pink)
+	}
+	if selected {
+		style = style.Bold(true).Underline(true)
+	}
+	return style.Width(w).Render(s.name)
+}
+
+func (d scriptDelegate) Height() int               { return 1 }
+func (d scriptDelegate) Spacing() int              { return 0 }
+func (d scriptDelegate) Update(msg tea.Msg, m *list.Model) tea.Cmd { return nil }
+
 func main() {
 	if err := ensureRepo(); err != nil {
 		fmt.Println("Error cloning repo:", err)
@@ -289,7 +313,7 @@ func main() {
 	tabs := []string{"Scripts", "About"}
 	scriptItems := getScriptItems("scriptbin")
 
-	listModel := list.New(scriptItems, list.NewDefaultDelegate(), 0, 0)
+	listModel := list.New(scriptItems, scriptDelegate{}, 0, 0)
 	listModel.Title = "Scripts"
 	listModel.SetShowHelp(false)
 	listModel.SetFilteringEnabled(false)
