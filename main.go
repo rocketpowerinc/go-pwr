@@ -390,8 +390,7 @@ func (m model) View() string {
 
     var body string
     if m.activeTab == 0 {
-        // Divide width equally for 3 panels
-        panelW := (m.width - 4) / 3 // -4 for border padding
+        panelW := (m.width - 4) / 3
         if panelW < 20 {
             panelW = 20
         }
@@ -401,19 +400,18 @@ func (m model) View() string {
             breadcrumb + "\n" + centerStyle.Render(m.list.View()),
         )
 
-        middle := borderStyle.Width(panelW).Height(panelHeight).Align(lipgloss.Center, lipgloss.Center).
-            Render(
-                lipgloss.NewStyle().
-                    Foreground(lipgloss.Color("226")).
-                    Bold(true).
-                    Align(lipgloss.Center, lipgloss.Center).
-                    Height(panelHeight).
-                    Render("G\nO\n-\nP\nW\nR"),
-            )
+        // Middle: GO-PWR, skinny and borderless
+        goPwr := lipgloss.NewStyle().
+            Foreground(lipgloss.Color("226")).
+            Bold(true).
+            Align(lipgloss.Center, lipgloss.Center).
+            Height(panelHeight).
+            Width(7). // Just enough for "G\nO\n-\nP\nW\nR"
+            Render("G\nO\n-\nP\nW\nR")
 
         right := borderStyle.Width(panelW).Height(panelHeight).Render(centerStyle.Render(m.vp.View()))
 
-        body = lipgloss.JoinHorizontal(lipgloss.Top, left, middle, right)
+        body = lipgloss.JoinHorizontal(lipgloss.Top, left, goPwr, right)
     } else {
         body = borderStyle.Render(centerStyle.Render("A cross-platform script browser powered by Bubble Tea."))
     }
