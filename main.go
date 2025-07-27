@@ -73,6 +73,10 @@ func getScriptItems() []list.Item {
 		if err != nil || info.IsDir() {
 			return nil
 		}
+		// Skip hidden files (starting with a dot)
+		if strings.HasPrefix(info.Name(), ".") {
+			return nil
+		}
 		rel, _ := filepath.Rel(root, path)
 		items = append(items, scriptItem{name: rel, path: path})
 		return nil
