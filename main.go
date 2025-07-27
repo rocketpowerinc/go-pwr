@@ -214,7 +214,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) View() string {
-	tabColor := pink // Always pink
+
 
 	var tabLabels []string
 	for i, name := range m.tabs {
