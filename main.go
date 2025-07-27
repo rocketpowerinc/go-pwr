@@ -221,7 +221,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					}
 				}
 			} else {
-				m.vp.SetContent("A cross-platform script browser powered by Bubble Tea.")
+				m.vp.SetContent("A cross-platform script browser powered by RocketPowerInc.")
 			}
 		case "r":
 			if m.activeTab == 0 && m.focus == focusList {
