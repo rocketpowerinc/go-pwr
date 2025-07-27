@@ -173,7 +173,18 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						m.scriptItems = getScriptItems(sel.path)
 						m.list.SetItems(m.scriptItems)
 						m.list.ResetSelected()
-						m.vp.SetContent("Select a script to preview...")
+						// Show preview for first item if it's a script
+						if len(m.scriptItems) > 0 {
+							if first, ok := m.scriptItems[0].(scriptItem); ok {
+								if strings.HasSuffix(first.name, ".sh") || strings.HasSuffix(first.name, ".ps1") {
+									m.vp.SetContent(readScript(first.path))
+								} else {
+									m.vp.SetContent("Select a script to preview...")
+								}
+							}
+						} else {
+							m.vp.SetContent("Select a script to preview...")
+						}
 						return m, nil
 					}
 				}
