@@ -158,8 +158,18 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "enter":
 			if m.activeTab == 0 && m.focus == focusList {
 				if sel, ok := m.list.SelectedItem().(scriptItem); ok {
-					return m, func() tea.Msg {
-						return outputMsg(readScript(sel.path))
+					if strings.HasSuffix(sel.name, "/") {
+						// Traverse into the selected directory
+						m.scriptItems = getScriptItems(sel.path)
+						m.list.SetItems(m.scriptItems)
+						m.list.ResetSelected()
+						m.vp.SetContent("Select a script to preview...")
+						return m, nil
+					} else {
+						// Preview the script file
+						return m, func() tea.Msg {
+							return outputMsg(readScript(sel.path))
+						}
 					}
 				}
 			}
