@@ -390,13 +390,14 @@ func (m model) View() string {
 
     var body string
     if m.activeTab == 0 {
-        panelW := (m.width - 4) / 3
-        if panelW < 20 {
-            panelW = 20
+        // Calculate left panel width (fixed), middle panel width (skinny), right panel takes the rest
+        leftW := (m.width - 4) / 3
+        if leftW < 20 {
+            leftW = 20
         }
         panelHeight := m.height - 10
 
-        left := borderStyle.Width(panelW).Height(panelHeight).Render(
+        left := borderStyle.Width(leftW).Height(panelHeight).Render(
             breadcrumb + "\n" + centerStyle.Render(m.list.View()),
         )
 
@@ -409,7 +410,12 @@ func (m model) View() string {
             Width(7). // Just enough for "G\nO\n-\nP\nW\nR"
             Render("G\nO\n-\nP\nW\nR")
 
-        right := borderStyle.Width(panelW).Height(panelHeight).Render(centerStyle.Render(m.vp.View()))
+        // Right panel: same height, takes up remaining width
+        rightW := m.width - leftW - 7 // 7 is the width of goPwr
+        if rightW < 20 {
+            rightW = 20
+        }
+        right := borderStyle.Width(rightW).Height(panelHeight).Render(centerStyle.Render(m.vp.View()))
 
         body = lipgloss.JoinHorizontal(lipgloss.Top, left, goPwr, right)
     } else {
