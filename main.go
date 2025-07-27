@@ -323,8 +323,16 @@ func (m model) View() string {
 
     var body string
     if m.activeTab == 0 {
-        left := borderStyle.Width(m.width/3).Render(centerStyle.Render(m.list.View()))
-        right := borderStyle.Width(m.width-m.width/3).Render(centerStyle.Render(m.vp.View()))
+        listW := m.width / 3
+        if listW < 20 {
+            listW = 20
+        }
+        vpW := m.width - listW
+        if vpW < 20 {
+            vpW = 20
+        }
+        left := borderStyle.Width(listW).Height(m.height-10).Render(centerStyle.Render(m.list.View()))
+        right := borderStyle.Width(vpW).Height(m.height-10).Render(centerStyle.Render(m.vp.View()))
         body = lipgloss.JoinHorizontal(lipgloss.Top, left, right)
     } else {
         body = borderStyle.Render(centerStyle.Render("A cross-platform script browser powered by Bubble Tea."))
