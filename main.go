@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -76,41 +77,47 @@ func highlightScript(content, ext string) string {
 
 	lines := strings.Split(content, "\n")
 	for i, line := range lines {
-		// Highlight comments
-		if idx := strings.Index(line, "#"); idx != -1 {
-			comment := line[idx:]
-			line = line[:idx] + commentStyle.Render(comment)
+		// Highlight comments first
+		commentIdx := strings.Index(line, "#")
+		isComment := commentIdx == 0 || (commentIdx > 0 && strings.TrimSpace(line[:commentIdx]) == "")
+		if commentIdx != -1 {
+			comment := line[commentIdx:]
+			line = line[:commentIdx] + commentStyle.Render(comment)
 		}
-		// Highlight keywords
-		if ext == ".sh" {
-			for _, kw := range []string{"if", "then", "else", "fi", "for", "in", "do", "done", "echo", "exit"} {
-				line = strings.ReplaceAll(line, kw, keywordStyle.Render(kw))
+		// Highlight keywords (skip comments)
+		if !isComment {
+			if ext == ".sh" {
+				for _, kw := range []string{"if", "then", "else", "fi", "for", "in", "do", "done", "echo", "exit"} {
+					line = strings.ReplaceAll(line, kw, keywordStyle.Render(kw))
+				}
+			} else if ext == ".ps1" {
+				for _, kw := range []string{"Write-Host", "if", "else", "foreach", "function", "return", "break"} {
+					line = strings.ReplaceAll(line, kw, keywordStyle.Render(kw))
+				}
 			}
-		} else if ext == ".ps1" {
-			for _, kw := range []string{"Write-Host", "if", "else", "foreach", "function", "return", "break"} {
-				line = strings.ReplaceAll(line, kw, keywordStyle.Render(kw))
+			// Highlight strings in double quotes (skip comments)
+			var out strings.Builder
+			inString := false
+			for _, r := range line {
+				if r == '"' {
+					inString = !inString
+					out.WriteString(stringStyle.Render(string(r)))
+				} else if inString {
+					out.WriteString(stringStyle.Render(string(r)))
+				} else {
+					out.WriteRune(r)
+				}
 			}
+			line = out.String()
 		}
-		// Highlight strings in double quotes
-		var out strings.Builder
-		inString := false
-		for _, r := range line {
-			if r == '"' {
-				inString = !inString
-				out.WriteString(stringStyle.Render(string(r)))
-			} else if inString {
-				out.WriteString(stringStyle.Render(string(r)))
-			} else {
-				out.WriteRune(r)
-			}
-		}
-		lines[i] = out.String()
+		lines[i] = line
 	}
 	return strings.Join(lines, "\n")
 }
 
 func ensureRepo() error {
-	if _, err := os.Stat("scriptbin"); os.IsNotExist(err) {
+	root := filepath.Clean("scriptbin")
+	if _, err := os.Stat(root); os.IsNotExist(err) {
 		cmd := exec.Command("git", "clone", "https://github.com/rocketpowerinc/scriptbin.git")
 		return cmd.Run()
 	}
@@ -123,8 +130,17 @@ func getScriptItems(root string) []list.Item {
 	if err != nil {
 		return items
 	}
+	// Sort: folders first, then files, both alphabetically
+	sort.Slice(entries, func(i, j int) bool {
+		if entries[i].IsDir() && !entries[j].IsDir() {
+			return true
+		}
+		if !entries[i].IsDir() && entries[j].IsDir() {
+			return false
+		}
+		return strings.ToLower(entries[i].Name()) < strings.ToLower(entries[j].Name())
+	})
 	for _, entry := range entries {
-		// Skip hidden files/folders
 		if strings.HasPrefix(entry.Name(), ".") {
 			continue
 		}
@@ -192,10 +208,42 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "tab":
-			// Only allow tab key to switch tabs
 			m.activeTab = (m.activeTab + 1) % len(m.tabs)
 			if m.activeTab == 0 {
 				m.list.SetItems(m.scriptItems)
+				// Show preview for selected item when switching back to Scripts tab
+				if sel, ok := m.list.SelectedItem().(scriptItem); ok {
+					if strings.HasSuffix(sel.name, ".sh") || strings.HasSuffix(sel.name, ".ps1") {
+						ext := filepath.Ext(sel.path)
+						m.vp.SetContent(highlightScript(readScript(sel.path), ext))
+					} else {
+						m.vp.SetContent("Select a script to preview...")
+					}
+				}
+			} else {
+				m.vp.SetContent("A cross-platform script browser powered by Bubble Tea.")
+			}
+		case "r":
+			if m.activeTab == 0 && m.focus == focusList {
+				if sel, ok := m.list.SelectedItem().(scriptItem); ok {
+					if !strings.HasSuffix(sel.name, "/") {
+						go func() {
+							var cmd *exec.Cmd
+							if strings.HasSuffix(sel.name, ".ps1") {
+								cmd = exec.Command("pwsh", sel.path)
+							} else {
+								cmd = exec.Command("sh", sel.path)
+							}
+							out, err := cmd.CombinedOutput()
+							if err != nil {
+								m.vp.SetContent(fmt.Sprintf("Error: %v\n%s", err, out))
+							} else {
+								m.vp.SetContent(string(out))
+							}
+						}()
+						m.vp.SetContent("Running script...")
+					}
+				}
 			}
 		case "left":
 			// Go back to parent directory if possible
@@ -321,9 +369,11 @@ func (m model) View() string {
 
     centerStyle := lipgloss.NewStyle().Align(lipgloss.Center).Height(m.height-10)
 
+    // Breadcrumb path above list
+    breadcrumb := lipgloss.NewStyle().Faint(true).Render(m.currentPath)
+
     var body string
     if m.activeTab == 0 {
-        // Make left window slightly smaller to ensure right border is visible
         listW := (m.width / 3) - 1
         if listW < 20 {
             listW = 20
@@ -332,17 +382,21 @@ func (m model) View() string {
         if vpW < 20 {
             vpW = 20
         }
-        left := borderStyle.Width(listW).Height(m.height-10).Render(centerStyle.Render(m.list.View()))
+        left := borderStyle.Width(listW).Height(m.height-10).Render(
+            breadcrumb + "\n" + centerStyle.Render(m.list.View()),
+        )
         right := borderStyle.Width(vpW).Height(m.height-10).Render(centerStyle.Render(m.vp.View()))
         body = lipgloss.JoinHorizontal(lipgloss.Top, left, right)
     } else {
         body = borderStyle.Render(centerStyle.Render("A cross-platform script browser powered by Bubble Tea."))
     }
 
-    footer := lipgloss.NewStyle().Foreground(pink).MarginTop(1).Align(lipgloss.Center).Render("← → or 🖱️ Click Tabs • ↑↓ Select • Enter Preview • q Quit")
+    footer := lipgloss.NewStyle().Foreground(pink).MarginTop(1).Align(lipgloss.Center).Render("← → or 🖱️ Click Tabs • ↑↓ Select • Enter Preview • r Run Script • q Quit")
+
+    header := headerStyle.Render("🧬 ScriptBin Browser")
 
     return lipgloss.JoinVertical(lipgloss.Left,
-        headerStyle.Render("🧬 ScriptBin Browser"),
+        header,
         tabBar,
         body,
         footer,
@@ -379,7 +433,7 @@ func main() {
 	}
 
 	tabs := []string{"Scripts", "About"}
-	scriptItems := getScriptItems("scriptbin")
+	scriptItems := getScriptItems(filepath.Clean("scriptbin"))
 
 	listModel := list.New(scriptItems, scriptDelegate{}, 0, 0)
 	listModel.Title = "Scripts"
@@ -389,13 +443,23 @@ func main() {
 	vp := viewport.New(0, 0)
 	vp.SetContent("Select a script to preview...")
 
+	// Initial preview for first script
+	if len(scriptItems) > 0 {
+		if s, ok := scriptItems[0].(scriptItem); ok {
+			if strings.HasSuffix(s.name, ".sh") || strings.HasSuffix(s.name, ".ps1") {
+				ext := filepath.Ext(s.path)
+				vp.SetContent(highlightScript(readScript(s.path), ext))
+			}
+		}
+	}
+
 	m := model{
 		list:        listModel,
 		vp:          vp,
 		tabs:        tabs,
 		scriptItems: scriptItems,
 		activeTab:   0,
-		currentPath: "scriptbin",
+		currentPath: filepath.Clean("scriptbin"),
 		parentPaths: []parentNav{},
 	}
 
