@@ -40,6 +40,7 @@ type model struct {
 	scriptItems []list.Item
 	focus       focusArea
 	currentPath string // Track current directory
+	parentPaths []string // Track parent directories for "go back"
 }
 
 type outputMsg string
@@ -153,6 +154,16 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if m.activeTab == 0 {
 					m.list.SetItems(m.scriptItems)
 				}
+			} else if m.activeTab == 0 && m.focus == focusList && m.currentPath != "" && len(m.parentPaths) > 0 {
+				// Go back to parent directory
+				parent := m.parentPaths[len(m.parentPaths)-1]
+				m.parentPaths = m.parentPaths[:len(m.parentPaths)-1]
+				m.scriptItems = getScriptItems(parent)
+				m.list.SetItems(m.scriptItems)
+				m.list.ResetSelected()
+				m.currentPath = parent
+				m.vp.SetContent("Select a script to preview...")
+				return m, nil
 			}
 		case "right":
 			if m.activeTab < len(m.tabs)-1 {
@@ -163,6 +174,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if sel, ok := m.list.SelectedItem().(scriptItem); ok {
 					if strings.HasSuffix(sel.name, "/") {
 						// Traverse into the selected directory
+						m.parentPaths = append(m.parentPaths, m.currentPath)
+						m.currentPath = sel.path
 						m.scriptItems = getScriptItems(sel.path)
 						m.list.SetItems(m.scriptItems)
 						m.list.ResetSelected()
@@ -261,6 +274,8 @@ func main() {
 		tabs:        tabs,
 		scriptItems: scriptItems,
 		activeTab:   0,
+		currentPath: "scriptbin",
+		parentPaths: []string{},
 	}
 
 	if err := tea.NewProgram(m,
