@@ -398,10 +398,14 @@ func (m model) View() string {
         if vpW < 20 {
             vpW = 20
         }
-        left := borderStyle.Width(listW).Height(m.height-10).Render(
+        // Ensure both panels have the same height and visible borders
+        panelHeight := m.height - 10
+        left := borderStyle.Width(listW).Height(panelHeight).Render(
             breadcrumb + "\n" + centerStyle.Render(m.list.View()),
         )
-        right := borderStyle.Width(vpW).Height(m.height-10).Render(centerStyle.Render(m.vp.View()))
+        // Add a right border to the preview panel
+        rightBorderStyle := borderStyle.Copy().BorderRight(true)
+        right := rightBorderStyle.Width(vpW).Height(panelHeight).Render(centerStyle.Render(m.vp.View()))
         body = lipgloss.JoinHorizontal(lipgloss.Top, left, right)
     } else {
         body = borderStyle.Render(centerStyle.Render("A cross-platform script browser powered by Bubble Tea."))
@@ -409,11 +413,7 @@ func (m model) View() string {
 
     footer := lipgloss.NewStyle().Foreground(pink).MarginTop(1).Align(lipgloss.Center).Render("← → or 🖱️ Click Tabs • ↑↓ Select • Enter Preview • r Run Script • q Quit")
 
-    // Remove header line
-    // header := headerStyle.Render("🧬 ScriptBin Browser")
-
     return lipgloss.JoinVertical(lipgloss.Left,
-        // header, // <-- Remove this line
         tabBar,
         body,
         footer,
