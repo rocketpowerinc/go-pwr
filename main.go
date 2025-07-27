@@ -227,29 +227,34 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.activeTab == 0 && m.focus == focusList {
 				if sel, ok := m.list.SelectedItem().(scriptItem); ok {
 					if !strings.HasSuffix(sel.name, "/") {
-						m.vp.SetContent("Running script... (see terminal output below)")
+						m.vp.SetContent("Running script in a new terminal window...")
 						go func() {
-							// Clear the terminal before running the script
-							// Windows: "cls", Unix: "clear"
-							if isWindows() {
-								exec.Command("cmd", "/c", "cls").Run()
-							} else {
-								exec.Command("clear").Run()
-							}
 							var cmd *exec.Cmd
-							if strings.HasSuffix(sel.name, ".ps1") {
-								cmd = exec.Command("pwsh", sel.path)
+							if isWindows() {
+								// Use start to open a new terminal window and run the script
+								if strings.HasSuffix(sel.name, ".ps1") {
+									cmd = exec.Command("cmd", "/C", "start", "powershell", "-NoExit", "-File", sel.path)
+								} else {
+									cmd = exec.Command("cmd", "/C", "start", "cmd", "/K", "sh "+sel.path)
+								}
 							} else {
-								cmd = exec.Command("sh", sel.path)
+								// Use x-terminal-emulator, gnome-terminal, or xterm for Unix
+								term := "x-terminal-emulator"
+								if _, err := exec.LookPath(term); err != nil {
+									term = "gnome-terminal"
+								}
+								if _, err := exec.LookPath(term); err != nil {
+									term = "xterm"
+								}
+								if strings.HasSuffix(sel.name, ".ps1") {
+									cmd = exec.Command(term, "-e", "pwsh "+sel.path)
+								} else {
+									cmd = exec.Command(term, "-e", "sh "+sel.path)
+								}
 							}
-							cmd.Stdout = os.Stdout
-							cmd.Stderr = os.Stderr
-							cmd.Stdin = os.Stdin
-							err := cmd.Run()
+							err := cmd.Start()
 							if err != nil {
-								fmt.Printf("\nError running script: %v\n", err)
-							} else {
-								fmt.Println("\nScript finished.")
+								fmt.Printf("\nError opening terminal: %v\n", err)
 							}
 						}()
 					}
