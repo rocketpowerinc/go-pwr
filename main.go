@@ -71,25 +71,22 @@ func ensureRepo() error {
 
 func getScriptItems(root string) []list.Item {
 	var items []list.Item
-	filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return nil
-		}
+	entries, err := ioutil.ReadDir(root)
+	if err != nil {
+		return items
+	}
+	for _, entry := range entries {
 		// Skip hidden files/folders
-		if strings.HasPrefix(info.Name(), ".") {
-			if info.IsDir() {
-				return filepath.SkipDir
-			}
-			return nil
+		if strings.HasPrefix(entry.Name(), ".") {
+			continue
 		}
-		relPath, _ := filepath.Rel(root, path)
-		if info.IsDir() && path != root {
-			items = append(items, scriptItem{name: relPath + "/", path: path})
-		} else if strings.HasSuffix(info.Name(), ".sh") || strings.HasSuffix(info.Name(), ".ps1") {
-			items = append(items, scriptItem{name: relPath, path: path})
+		path := filepath.Join(root, entry.Name())
+		if entry.IsDir() {
+			items = append(items, scriptItem{name: entry.Name() + "/", path: path})
+		} else if strings.HasSuffix(entry.Name(), ".sh") || strings.HasSuffix(entry.Name(), ".ps1") {
+			items = append(items, scriptItem{name: entry.Name(), path: path})
 		}
-		return nil
-	})
+	}
 	return items
 }
 
