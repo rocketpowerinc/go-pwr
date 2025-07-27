@@ -375,7 +375,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m model) View() string {
     var tabLabels []string
     for i, name := range m.tabs {
-        label := name // Use the tab name directly
+        label := name
         style := tabInactiveStyle.Copy()
         if i == m.activeTab {
             style = style.Inherit(tabActiveStyle)
@@ -417,11 +417,18 @@ func (m model) View() string {
 
     footer := lipgloss.NewStyle().Foreground(pink).MarginTop(1).Align(lipgloss.Center).Render("← → or 🖱️ Click Tabs • ↑↓ Select • Enter Preview • r Run Script • q Quit")
 
-    return lipgloss.JoinVertical(lipgloss.Left,
-        tabBar,
-        body,
-        footer,
-    )
+    if m.activeTab == 0 {
+        return lipgloss.JoinVertical(lipgloss.Left,
+            tabBar,
+            body,
+            footer,
+        )
+    } else {
+        return lipgloss.JoinVertical(lipgloss.Left,
+            tabBar,
+            body,
+        )
+    }
 }
 
 type scriptDelegate struct{}
