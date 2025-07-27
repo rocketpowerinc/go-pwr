@@ -143,19 +143,14 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "tab":
-			if m.focus == focusList {
-				m.focus = focusPreview
-			} else {
-				m.focus = focusList
+			// Only allow tab key to switch tabs
+			m.activeTab = (m.activeTab + 1) % len(m.tabs)
+			if m.activeTab == 0 {
+				m.list.SetItems(m.scriptItems)
 			}
 		case "left":
-			if m.activeTab > 0 {
-				m.activeTab--
-				if m.activeTab == 0 {
-					m.list.SetItems(m.scriptItems)
-				}
-			} else if m.activeTab == 0 && m.focus == focusList && m.currentPath != "" && len(m.parentPaths) > 0 {
-				// Go back to parent directory
+			// Go back to parent directory if possible
+			if m.activeTab == 0 && m.focus == focusList && m.currentPath != "" && len(m.parentPaths) > 0 {
 				parent := m.parentPaths[len(m.parentPaths)-1]
 				m.parentPaths = m.parentPaths[:len(m.parentPaths)-1]
 				m.scriptItems = getScriptItems(parent)
@@ -166,14 +161,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, nil
 			}
 		case "right":
-			if m.activeTab < len(m.tabs)-1 {
-				m.activeTab++
-			}
-		case "enter":
+			// Traverse into selected directory if possible
 			if m.activeTab == 0 && m.focus == focusList {
 				if sel, ok := m.list.SelectedItem().(scriptItem); ok {
 					if strings.HasSuffix(sel.name, "/") {
-						// Traverse into the selected directory
 						m.parentPaths = append(m.parentPaths, m.currentPath)
 						m.currentPath = sel.path
 						m.scriptItems = getScriptItems(sel.path)
@@ -181,7 +172,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						m.list.ResetSelected()
 						m.vp.SetContent("Select a script to preview...")
 						return m, nil
-					} else {
+					}
+				}
+			}
+		case "enter":
+			if m.activeTab == 0 && m.focus == focusList {
+				if sel, ok := m.list.SelectedItem().(scriptItem); ok {
+					if !strings.HasSuffix(sel.name, "/") {
 						// Preview the script file
 						return m, func() tea.Msg {
 							return outputMsg(readScript(sel.path))
@@ -195,14 +192,14 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			} else if m.focus == focusPreview {
 				m.vp.LineUp(1)
 			}
-			return m, cmd // <-- Return early so we don't update again below
+			return m, cmd
 		case "down":
 			if m.focus == focusList {
 				m.list, cmd = m.list.Update(msg)
 			} else if m.focus == focusPreview {
 				m.vp.LineDown(1)
 			}
-			return m, cmd // <-- Return early so we don't update again below
+			return m, cmd
 		case "q", "ctrl+c":
 			return m, tea.Quit
 		}
@@ -210,7 +207,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.vp.SetContent(strings.TrimSpace(string(msg)))
 	}
 
-	// Only update both panes for non-up/down keys
 	m.list, _ = m.list.Update(msg)
 	m.vp, _ = m.vp.Update(msg)
 	return m, cmd
