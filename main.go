@@ -231,14 +231,15 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						go func() {
 							var cmd *exec.Cmd
 							if isWindows() {
-								// Use start to open a new terminal window and run the script
 								if strings.HasSuffix(sel.name, ".ps1") {
-									cmd = exec.Command("cmd", "/C", "start", "powershell", "-NoExit", "-File", sel.path)
+									// PowerShell: add Read-Host to pause
+									cmd = exec.Command("cmd", "/C", "start", "powershell", "-NoExit", "-Command", sel.path+"; Write-Host ''; Read-Host 'Press Enter to exit'")
 								} else {
-									cmd = exec.Command("cmd", "/C", "start", "cmd", "/K", "sh "+sel.path)
+									// Batch: add pause
+									cmd = exec.Command("cmd", "/C", "start", "cmd", "/K", "sh "+sel.path+" & pause")
 								}
 							} else {
-								// Use x-terminal-emulator, gnome-terminal, or xterm for Unix
+								// Try x-terminal-emulator, gnome-terminal, xterm
 								term := "x-terminal-emulator"
 								if _, err := exec.LookPath(term); err != nil {
 									term = "gnome-terminal"
@@ -247,9 +248,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 									term = "xterm"
 								}
 								if strings.HasSuffix(sel.name, ".ps1") {
-									cmd = exec.Command(term, "-e", "pwsh "+sel.path)
+									cmd = exec.Command(term, "-e", "bash", "-c", "pwsh "+sel.path+"; echo; read -p 'Press Enter to exit'")
 								} else {
-									cmd = exec.Command(term, "-e", "sh "+sel.path)
+									cmd = exec.Command(term, "-e", "bash", "-c", "sh "+sel.path+"; echo; read -p 'Press Enter to exit'")
 								}
 							}
 							err := cmd.Start()
