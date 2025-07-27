@@ -373,7 +373,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) View() string {
-    // Render tab bar with original label "Scripts" for the first tab
     var tabLabels []string
     for i, name := range m.tabs {
         label := name // Use the tab name directly
@@ -394,16 +393,26 @@ func (m model) View() string {
         rightW := m.width - leftW
         panelHeight := m.height - 10
 
-        // Only show breadcrumbs and list, no title and no extra spacing
         left := borderStyle.Width(leftW).Height(panelHeight).Render(
-            breadcrumb + m.list.View(), // <-- Remove centerStyle and any extra spacing
+            breadcrumb + m.list.View(),
         )
 
         right := borderStyle.Width(rightW).Height(panelHeight).Render(centerStyle.Render(m.vp.View()))
 
         body = lipgloss.JoinHorizontal(lipgloss.Top, left, right)
     } else {
-        body = borderStyle.Render(centerStyle.Render("A cross-platform script browser powered by Bubble Tea."))
+        // About screen: single centered window with grey border and grey text
+        grey := lipgloss.Color("244")
+        aboutStyle := lipgloss.NewStyle().
+            Border(lipgloss.NormalBorder()).
+            BorderForeground(grey).
+            Foreground(grey).
+            Align(lipgloss.Center, lipgloss.Center).
+            Width(m.width / 2).
+            Height(m.height / 2)
+        body = lipgloss.Place(m.width, m.height-10, lipgloss.Center, lipgloss.Center,
+            aboutStyle.Render("A cross-platform script browser powered by Bubble Tea.\n\nMade with Bubble Tea, Lipgloss, and Go."),
+        )
     }
 
     footer := lipgloss.NewStyle().Foreground(pink).MarginTop(1).Align(lipgloss.Center).Render("← → or 🖱️ Click Tabs • ↑↓ Select • Enter Preview • r Run Script • q Quit")
