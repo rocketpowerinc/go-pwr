@@ -394,19 +394,38 @@ func (m model) View() string {
         if listW < 20 {
             listW = 20
         }
-        vpW := m.width - listW
+        vpW := m.width - listW - 8 // Reserve space for vertical title
         if vpW < 20 {
             vpW = 20
         }
-        // Ensure both panels have the same height and visible borders
         panelHeight := m.height - 10
+
         left := borderStyle.Width(listW).Height(panelHeight).Render(
             breadcrumb + "\n" + centerStyle.Render(m.list.View()),
         )
-        // Add a right border to the preview panel
+
         rightBorderStyle := borderStyle.Copy().BorderRight(true)
         right := rightBorderStyle.Width(vpW).Height(panelHeight).Render(centerStyle.Render(m.vp.View()))
-        body = lipgloss.JoinHorizontal(lipgloss.Top, left, right)
+
+        // Vertical "GO-PWR" title in yellow
+        yellow := lipgloss.Color("226")
+        verticalTitle := lipgloss.NewStyle().
+            Foreground(yellow).
+            Bold(true).
+            Align(lipgloss.Center).
+            Height(panelHeight).
+            Render(strings.Join([]string{"G", "O", "-", "P", "W", "R"}, "\n"))
+
+        // Add a border to the vertical title
+        verticalTitle = lipgloss.NewStyle().
+            Border(lipgloss.NormalBorder()).
+            BorderForeground(yellow).
+            Padding(0, 1).
+            Height(panelHeight).
+            Align(lipgloss.Center).
+            Render(verticalTitle)
+
+        body = lipgloss.JoinHorizontal(lipgloss.Top, left, right, verticalTitle)
     } else {
         body = borderStyle.Render(centerStyle.Render("A cross-platform script browser powered by Bubble Tea."))
     }
