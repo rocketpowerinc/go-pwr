@@ -232,9 +232,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 							var cmd *exec.Cmd
 							if isWindows() {
 								if strings.HasSuffix(sel.name, ".ps1") {
-									cmd = exec.Command("cmd", "/C", "start", "powershell", "-NoExit", "-Command", sel.path+"; Write-Host ''; Read-Host 'Press Enter to exit'")
+									cmd = exec.Command("cmd", "/C", "start", "powershell", "-NoExit", "-Command", "Clear-Host; "+sel.path+"; Write-Host ''; Read-Host 'Press Enter to exit'")
 								} else {
-									cmd = exec.Command("cmd", "/C", "start", "cmd", "/K", "bash -l "+sel.path+" & pause")
+									cmd = exec.Command("cmd", "/C", "start", "cmd", "/K", "cls && bash -l "+sel.path+" & pause")
 								}
 							} else {
 								// Use bash -l to load the full profile and environment
@@ -245,7 +245,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 								if _, err := exec.LookPath(term); err != nil {
 									term = "xterm"
 								}
-								cmd = exec.Command(term, "-e", "bash", "-l", "-c", "bash "+sel.path+"; echo; read -p 'Press Enter to exit'")
+								cmd = exec.Command(term, "-e", "bash", "-l", "-c", "clear; bash "+sel.path+"; echo; read -p 'Press Enter to exit'")
 							}
 							err := cmd.Start()
 							if err != nil {
