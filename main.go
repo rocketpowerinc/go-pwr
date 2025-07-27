@@ -333,12 +333,9 @@ func (m model) View() string {
         }
         left := borderStyle.Width(listW).Height(m.height-10).Render(centerStyle.Render(m.list.View()))
         right := borderStyle.Width(vpW).Height(m.height-10).Render(centerStyle.Render(m.vp.View()))
-        // Place panes side by side, preserving all borders
-        body = lipgloss.JoinHorizontal(
-            lipgloss.Top,
-            left,
-            right,
-        )
+        // Add a space between panes to prevent border merging
+        gap := " "
+        body = left + gap + right
     } else {
         body = borderStyle.Render(centerStyle.Render("A cross-platform script browser powered by Bubble Tea."))
     }
