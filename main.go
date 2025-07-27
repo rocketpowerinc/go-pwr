@@ -23,6 +23,13 @@ func (s scriptItem) Title() string       { return s.name }
 func (s scriptItem) Description() string { return s.path }
 func (s scriptItem) FilterValue() string { return s.name }
 
+type focusArea int
+
+const (
+	focusList focusArea = iota
+	focusPreview
+)
+
 type model struct {
 	list        list.Model
 	vp          viewport.Model
@@ -31,6 +38,7 @@ type model struct {
 	activeTab   int
 	tabs        []string
 	scriptItems []list.Item
+	focus       focusArea
 }
 
 type outputMsg string
@@ -80,6 +88,17 @@ func readScript(path string) string {
 	return string(data)
 }
 
+func (m *model) setSizes() {
+	// Always split the terminal in half, minimum width 20 per pane
+	halfW := m.width / 2
+	if halfW < 20 {
+		halfW = 20
+	}
+	m.list.SetSize(halfW-4, m.height-10)
+	m.vp.Width = halfW - 4
+	m.vp.Height = m.height - 10
+}
+
 func (m model) Init() tea.Cmd {
 	return nil
 }
@@ -90,10 +109,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		m.width, m.height = msg.Width, msg.Height
-		halfW := m.width / 2
-		m.list.SetSize(halfW-4, m.height-10)
-		m.vp.Width = halfW - 4
-		m.vp.Height = m.height - 10
+		m.setSizes()
 		return m, nil
 
 	case tea.MouseMsg:
@@ -114,6 +130,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case tea.KeyMsg:
 		switch msg.String() {
+		case "tab":
+			if m.focus == focusList {
+				m.focus = focusPreview
+			} else {
+				m.focus = focusList
+			}
 		case "left":
 			if m.activeTab > 0 {
 				m.activeTab--
@@ -126,25 +148,35 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.activeTab++
 			}
 		case "enter":
-			if m.activeTab == 0 {
+			if m.activeTab == 0 && m.focus == focusList {
 				if sel, ok := m.list.SelectedItem().(scriptItem); ok {
 					return m, func() tea.Msg {
 						return outputMsg(readScript(sel.path))
 					}
 				}
 			}
+		case "up":
+			if m.focus == focusList {
+				m.list, cmd = m.list.Update(msg)
+			} else if m.focus == focusPreview {
+				m.vp.LineUp(1)
+			}
+		case "down":
+			if m.focus == focusList {
+				m.list, cmd = m.list.Update(msg)
+			} else if m.focus == focusPreview {
+				m.vp.LineDown(1)
+			}
 		case "q", "ctrl+c":
 			return m, tea.Quit
 		}
-
 	case outputMsg:
 		m.vp.SetContent(strings.TrimSpace(string(msg)))
 	}
 
-	if m.activeTab == 0 {
-		m.list, cmd = m.list.Update(msg)
-		m.vp, _ = m.vp.Update(msg)
-	}
+	// Always update both panes so they stay in sync
+	m.list, _ = m.list.Update(msg)
+	m.vp, _ = m.vp.Update(msg)
 	return m, cmd
 }
 
