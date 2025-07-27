@@ -182,12 +182,14 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			} else if m.focus == focusPreview {
 				m.vp.LineUp(1)
 			}
+			return m, cmd // <-- Return early so we don't update again below
 		case "down":
 			if m.focus == focusList {
 				m.list, cmd = m.list.Update(msg)
 			} else if m.focus == focusPreview {
 				m.vp.LineDown(1)
 			}
+			return m, cmd // <-- Return early so we don't update again below
 		case "q", "ctrl+c":
 			return m, tea.Quit
 		}
@@ -195,7 +197,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.vp.SetContent(strings.TrimSpace(string(msg)))
 	}
 
-	// Always update both panes so they stay in sync
+	// Only update both panes for non-up/down keys
 	m.list, _ = m.list.Update(msg)
 	m.vp, _ = m.vp.Update(msg)
 	return m, cmd
