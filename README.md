@@ -36,6 +36,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ```bash
 git clone https://github.com/rocketpowerinc/go-pwr.git
 cd go-pwr
+go mod init
 go install
 ```
 Then run `~/go/bin/go-pwr`
