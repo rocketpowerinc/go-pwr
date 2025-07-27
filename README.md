@@ -17,6 +17,14 @@ This command will compile the application and place the executable in your `$GOP
 
 Might have to clean cache first `go clean -modcache`
 
+If still not getting the latest changes use
+```bash
+[ -d go-pwr ] && rm -rf go-pwr
+rm -f ~/go/bin/go-pwr
+git clone https://github.com/rocketpowerinc/go-pwr.git
+cd go-pwr
+go install
+```
 
 ## Usage
 
@@ -26,21 +34,6 @@ After installation, you can run the application from any directory by executing:
 
 Add to Bash Path
  `echo 'export PATH="$HOME/go/bin:$PATH"' >> ~/.bashrc && source ~/.bashrc`
-
-
-# To Get Very Latest Changes
-```bash
-# Clean Up
-[ -d go-pwr ] && rm -rf go-pwr
-rm -f ~/go/bin/go-pwr
-# Install Fresh
-git clone https://github.com/rocketpowerinc/go-pwr.git
-cd go-pwr
-go install
-```
-Then run `~/go/bin/go-pwr`
-
-
 
 
 ## Contributing
