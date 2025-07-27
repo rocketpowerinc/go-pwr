@@ -227,6 +227,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.activeTab == 0 && m.focus == focusList {
 				if sel, ok := m.list.SelectedItem().(scriptItem); ok {
 					if !strings.HasSuffix(sel.name, "/") {
+						m.vp.SetContent("Running script... (see terminal output below)")
 						go func() {
 							var cmd *exec.Cmd
 							if strings.HasSuffix(sel.name, ".ps1") {
@@ -234,14 +235,16 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 							} else {
 								cmd = exec.Command("sh", sel.path)
 							}
-							out, err := cmd.CombinedOutput()
+							cmd.Stdout = os.Stdout
+							cmd.Stderr = os.Stderr
+							cmd.Stdin = os.Stdin
+							err := cmd.Run()
 							if err != nil {
-								m.vp.SetContent(fmt.Sprintf("Error: %v\n%s", err, out))
+								fmt.Printf("\nError running script: %v\n", err)
 							} else {
-								m.vp.SetContent(string(out))
+								fmt.Println("\nScript finished.")
 							}
 						}()
-						m.vp.SetContent("Running script...")
 					}
 				}
 			}
