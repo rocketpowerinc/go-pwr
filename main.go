@@ -30,6 +30,11 @@ const (
 	focusPreview
 )
 
+type parentNav struct {
+	path  string
+	index int
+}
+
 type model struct {
 	list        list.Model
 	vp          viewport.Model
@@ -40,7 +45,7 @@ type model struct {
 	scriptItems []list.Item
 	focus       focusArea
 	currentPath string // Track current directory
-	parentPaths []string // Track parent directories for "go back"
+	parentPaths []parentNav // Track parent directories and selected index
 }
 
 type outputMsg string
@@ -151,10 +156,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.activeTab == 0 && m.focus == focusList && m.currentPath != "" && len(m.parentPaths) > 0 {
 				parent := m.parentPaths[len(m.parentPaths)-1]
 				m.parentPaths = m.parentPaths[:len(m.parentPaths)-1]
-				m.scriptItems = getScriptItems(parent)
+				m.scriptItems = getScriptItems(parent.path)
 				m.list.SetItems(m.scriptItems)
 				m.list.ResetSelected()
-				m.currentPath = parent
+				m.currentPath = parent.path
 				m.vp.SetContent("Select a script to preview...")
 				return m, nil
 			}
@@ -163,7 +168,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.activeTab == 0 && m.focus == focusList {
 				if sel, ok := m.list.SelectedItem().(scriptItem); ok {
 					if strings.HasSuffix(sel.name, "/") {
-						m.parentPaths = append(m.parentPaths, m.currentPath)
+						m.parentPaths = append(m.parentPaths, parentNav{path: m.currentPath, index: m.list.Index()})
 						m.currentPath = sel.path
 						m.scriptItems = getScriptItems(sel.path)
 						m.list.SetItems(m.scriptItems)
@@ -266,7 +271,7 @@ func main() {
 		scriptItems: scriptItems,
 		activeTab:   0,
 		currentPath: "scriptbin",
-		parentPaths: []string{},
+		parentPaths: []parentNav{},
 	}
 
 	if err := tea.NewProgram(m,
