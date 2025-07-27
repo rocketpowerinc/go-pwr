@@ -390,11 +390,12 @@ func (m model) View() string {
 
     var body string
     if m.activeTab == 0 {
-        // Calculate left panel width (fixed), middle panel width (skinny), right panel takes the rest
+        // Calculate left/right panel width (symmetrical), middle panel is skinny
         leftW := (m.width - 4) / 3
         if leftW < 20 {
             leftW = 20
         }
+        rightW := leftW
         panelHeight := m.height - 10
 
         left := borderStyle.Width(leftW).Height(panelHeight).Render(
@@ -407,14 +408,9 @@ func (m model) View() string {
             Bold(true).
             Align(lipgloss.Center, lipgloss.Center).
             Height(panelHeight).
-            Width(7). // Just enough for "G\nO\n-\nP\nW\nR"
+            Width(7).
             Render("G\nO\n-\nP\nW\nR")
 
-        // Right panel: same height, takes up remaining width
-        rightW := m.width - leftW - 7 // 7 is the width of goPwr
-        if rightW < 20 {
-            rightW = 20
-        }
         right := borderStyle.Width(rightW).Height(panelHeight).Render(centerStyle.Render(m.vp.View()))
 
         body = lipgloss.JoinHorizontal(lipgloss.Top, left, goPwr, right)
