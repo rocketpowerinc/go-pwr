@@ -21,7 +21,7 @@ If still not getting the latest changes use
 ```bash
 [ -d go-pwr ] && rm -rf go-pwr
 rm -f ~/go/bin/go-pwr
-git clone https://github.com/rocketpowerinc/go-pwr.git
+git clone https://github.com/rocketpowerinc/go-pwr.git 
 cd go-pwr
 go install
 ```
@@ -40,6 +40,6 @@ Add to Bash Path
 
 Contributions are welcome! If you have suggestions for improvements or new features, feel free to open an issue or submit a pull request.
 
-## License
+### License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
