@@ -381,7 +381,8 @@ func (m model) View() string {
         }
         tabLabels = append(tabLabels, style.Render(name))
     }
-    tabBar := tabBarStyle.Render(strings.Join(tabLabels, "  "))
+    // Remove tabBar from the UI
+    // tabBar := tabBarStyle.Render(strings.Join(tabLabels, "  "))
 
     centerStyle := lipgloss.NewStyle().Align(lipgloss.Center).Height(m.height-10)
 
@@ -390,7 +391,6 @@ func (m model) View() string {
 
     var body string
     if m.activeTab == 0 {
-        // Calculate left/right panel width (symmetrical), middle panel is skinny
         leftW := (m.width - 4) / 3
         if leftW < 20 {
             leftW = 20
@@ -402,7 +402,6 @@ func (m model) View() string {
             breadcrumb + "\n" + centerStyle.Render(m.list.View()),
         )
 
-        // Middle: GO-PWR, skinny and borderless
         goPwr := lipgloss.NewStyle().
             Foreground(lipgloss.Color("226")).
             Bold(true).
@@ -420,8 +419,9 @@ func (m model) View() string {
 
     footer := lipgloss.NewStyle().Foreground(pink).MarginTop(1).Align(lipgloss.Center).Render("← → or 🖱️ Click Tabs • ↑↓ Select • Enter Preview • r Run Script • q Quit")
 
+    // Remove tabBar from the vertical join
     return lipgloss.JoinVertical(lipgloss.Left,
-        tabBar,
+        // tabBar, // <-- Remove this line
         body,
         footer,
     )
