@@ -239,11 +239,11 @@ func (m model) View() string {
 	footer := lipgloss.NewStyle().Foreground(tabColor).MarginTop(1).Render("← → or 🖱️ Click Tabs • ↑↓ Select • Enter Preview • q Quit")
 
 	return lipgloss.JoinVertical(lipgloss.Left,
-		headerStyle.Foreground(tabColor).Render("🧬 ScriptBin Browser"),
-		tabBar,
-		body,
-		footer,
-	)
+    headerStyle.Foreground(tabColor).Render("🧬 ScriptBin Browser"),
+    tabBar,
+    body,
+    footer,
+)
 }
 
 func main() {
