@@ -213,22 +213,21 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) View() string {
-	tabColor := tabColors[m.activeTab]
-	colorStyle := lipgloss.NewStyle().Foreground(tabColor)
-	tabLabel := colorStyle.Copy().Bold(true).Render(fmt.Sprintf("%s %s", tabIcons[m.activeTab], m.tabs[m.activeTab]))
+    tabColor := tabColors[m.activeTab]
+    colorStyle := lipgloss.NewStyle().Foreground(tabColor)
 
-	var tabLabels []string
-	for i, name := range m.tabs {
-		style := tabInactiveStyle.Copy()
-		if i == m.activeTab {
-			style = style.Inherit(tabActiveStyle).Foreground(tabColors[i])
-		}
-		tabLabels = append(tabLabels, style.Render(name))
-	}
-	tabBar := tabBarStyle.Render(strings.Join(tabLabels, "  "))
+    var tabLabels []string
+    for i, name := range m.tabs {
+        style := tabInactiveStyle.Copy()
+        if i == m.activeTab {
+            style = style.Inherit(tabActiveStyle).Foreground(tabColors[i])
+        }
+        tabLabels = append(tabLabels, style.Render(name))
+    }
+    tabBar := tabBarStyle.Render(strings.Join(tabLabels, "  "))
 
-	var body string
-	if m.activeTab == 0 {
+    var body string
+    if m.activeTab == 0 {
 		left := borderStyle.Copy().BorderForeground(tabColor).Render(m.list.View())
 		right := borderStyle.Copy().BorderForeground(tabColor).Render(m.vp.View())
 		body = lipgloss.JoinHorizontal(lipgloss.Top, left, right)
