@@ -214,7 +214,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m model) View() string {
     tabColor := tabColors[m.activeTab]
-    colorStyle := lipgloss.NewStyle().Foreground(tabColor)
 
     var tabLabels []string
     for i, name := range m.tabs {
