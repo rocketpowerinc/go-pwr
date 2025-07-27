@@ -323,7 +323,8 @@ func (m model) View() string {
 
     var body string
     if m.activeTab == 0 {
-        listW := m.width / 3
+        // Make left window slightly smaller to ensure right border is visible
+        listW := (m.width / 3) - 1
         if listW < 20 {
             listW = 20
         }
@@ -333,8 +334,7 @@ func (m model) View() string {
         }
         left := borderStyle.Width(listW).Height(m.height-10).Render(centerStyle.Render(m.list.View()))
         right := borderStyle.Width(vpW).Height(m.height-10).Render(centerStyle.Render(m.vp.View()))
-        gap := lipgloss.NewStyle().Width(1).Render(" ") // 1 space gap
-        body = lipgloss.JoinHorizontal(lipgloss.Top, left, gap, right)
+        body = lipgloss.JoinHorizontal(lipgloss.Top, left, right)
     } else {
         body = borderStyle.Render(centerStyle.Render("A cross-platform script browser powered by Bubble Tea."))
     }
