@@ -409,8 +409,11 @@ func (m model) View() string {
 
     footer := lipgloss.NewStyle().Foreground(pink).MarginTop(1).Align(lipgloss.Center).Render("← → or 🖱️ Click Tabs • ↑↓ Select • Enter Preview • r Run Script • q Quit")
 
+    // Remove header line
+    // header := headerStyle.Render("🧬 ScriptBin Browser")
+
     return lipgloss.JoinVertical(lipgloss.Left,
-        header,
+        // header, // <-- Remove this line
         tabBar,
         body,
         footer,
