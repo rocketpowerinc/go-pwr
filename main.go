@@ -452,7 +452,7 @@ func main() {
 	scriptItems := getScriptItems(filepath.Clean("scriptbin"))
 
 	listModel := list.New(scriptItems, scriptDelegate{}, 0, 0)
-	listModel.Title = "Scripts"
+	listModel.Title = "" // Remove the "Scripts" title
 	listModel.SetShowHelp(false)
 	listModel.SetFilteringEnabled(false)
 
