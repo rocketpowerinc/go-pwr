@@ -158,7 +158,7 @@ func (m model) View() string {
 }
 
 func main() {
-	tabs := []string{"Windows", "Mac", "Linux"}
+	tabs := []string{"Windows", "Mac", "LLinux"}
 
 	windowsActions := []list.Item{
 		action{"🔒 Lock", "Simulated Windows lock", `echo "Windows Lock"`},
@@ -171,7 +171,7 @@ func main() {
 	}
 
 	linuxActions := []list.Item{
-		action{"🔒 Lockk", "Lock session", "loginctl lock-session"},
+		action{"🔒 Lock", "Lock session", "loginctl lock-session"},
 		action{"🔁 Logout", "Logout user", "loginctl kill-user $USER"},
 		action{"⟳ Reboot", "Reboot system", "sudo reboot"},
 		action{"⏻ Poweroff", "Shutdown", "sudo poweroff"},
