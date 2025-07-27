@@ -191,14 +191,36 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		case "up":
 			if m.focus == focusList {
+				prevIndex := m.list.Index()
 				m.list, cmd = m.list.Update(msg)
+				newIndex := m.list.Index()
+				if prevIndex != newIndex {
+					if sel, ok := m.list.SelectedItem().(scriptItem); ok {
+						if strings.HasSuffix(sel.name, ".sh") || strings.HasSuffix(sel.name, ".ps1") {
+							m.vp.SetContent(readScript(sel.path))
+						} else {
+							m.vp.SetContent("Select a script to preview...")
+						}
+					}
+				}
 			} else if m.focus == focusPreview {
 				m.vp.LineUp(1)
 			}
 			return m, cmd
 		case "down":
 			if m.focus == focusList {
+				prevIndex := m.list.Index()
 				m.list, cmd = m.list.Update(msg)
+				newIndex := m.list.Index()
+				if prevIndex != newIndex {
+					if sel, ok := m.list.SelectedItem().(scriptItem); ok {
+						if strings.HasSuffix(sel.name, ".sh") || strings.HasSuffix(sel.name, ".ps1") {
+							m.vp.SetContent(readScript(sel.path))
+						} else {
+							m.vp.SetContent("Select a script to preview...")
+						}
+					}
+				}
 			} else if m.focus == focusPreview {
 				m.vp.LineDown(1)
 			}
