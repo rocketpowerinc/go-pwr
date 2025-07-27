@@ -411,7 +411,7 @@ func (m model) View() string {
             Width(m.width / 2).
             Height(m.height / 2)
         body = lipgloss.Place(m.width, m.height-10, lipgloss.Center, lipgloss.Center,
-            aboutStyle.Render("A cross-platform script browser powered by Bubble Tea.\n\nMade with Bubble Tea, Lipgloss, and Go."),
+            aboutStyle.Render("A cross-platform script browser powered by RocketPowerInc.\n\nMade with Bubble Tea, Lipgloss, and Go."),
         )
     }
 
