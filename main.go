@@ -390,42 +390,30 @@ func (m model) View() string {
 
     var body string
     if m.activeTab == 0 {
-        listW := (m.width / 3) - 1
-        if listW < 20 {
-            listW = 20
-        }
-        vpW := m.width - listW - 8 // Reserve space for vertical title
-        if vpW < 20 {
-            vpW = 20
+        // Divide width equally for 3 panels
+        panelW := (m.width - 4) / 3 // -4 for border padding
+        if panelW < 20 {
+            panelW = 20
         }
         panelHeight := m.height - 10
 
-        left := borderStyle.Width(listW).Height(panelHeight).Render(
+        left := borderStyle.Width(panelW).Height(panelHeight).Render(
             breadcrumb + "\n" + centerStyle.Render(m.list.View()),
         )
 
-        rightBorderStyle := borderStyle.Copy().BorderRight(true)
-        right := rightBorderStyle.Width(vpW).Height(panelHeight).Render(centerStyle.Render(m.vp.View()))
+        middle := borderStyle.Width(panelW).Height(panelHeight).Align(lipgloss.Center, lipgloss.Center).
+            Render(
+                lipgloss.NewStyle().
+                    Foreground(lipgloss.Color("226")).
+                    Bold(true).
+                    Align(lipgloss.Center, lipgloss.Center).
+                    Height(panelHeight).
+                    Render("G\nO\n-\nP\nW\nR"),
+            )
 
-        // Vertical "GO-PWR" title in yellow
-        yellow := lipgloss.Color("226")
-        verticalTitle := lipgloss.NewStyle().
-            Foreground(yellow).
-            Bold(true).
-            Align(lipgloss.Center).
-            Height(panelHeight).
-            Render(strings.Join([]string{"G", "O", "-", "P", "W", "R"}, "\n"))
+        right := borderStyle.Width(panelW).Height(panelHeight).Render(centerStyle.Render(m.vp.View()))
 
-        // Add a border to the vertical title
-        verticalTitle = lipgloss.NewStyle().
-            Border(lipgloss.NormalBorder()).
-            BorderForeground(yellow).
-            Padding(0, 1).
-            Height(panelHeight).
-            Align(lipgloss.Center).
-            Render(verticalTitle)
-
-        body = lipgloss.JoinHorizontal(lipgloss.Top, left, right, verticalTitle)
+        body = lipgloss.JoinHorizontal(lipgloss.Top, left, middle, right)
     } else {
         body = borderStyle.Render(centerStyle.Render("A cross-platform script browser powered by Bubble Tea."))
     }
