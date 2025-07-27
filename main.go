@@ -39,6 +39,7 @@ type model struct {
 	tabs        []string
 	scriptItems []list.Item
 	focus       focusArea
+	currentPath string // Track current directory
 }
 
 type outputMsg string
