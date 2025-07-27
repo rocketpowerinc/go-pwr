@@ -373,13 +373,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) View() string {
-    // Render tab bar with custom label "GO-PWR" for the first tab
+    // Render tab bar with original label "Scripts" for the first tab
     var tabLabels []string
     for i, name := range m.tabs {
-        label := name
-        if i == 0 {
-            label = "GO-PWR"
-        }
+        label := name // Use the tab name directly
         style := tabInactiveStyle.Copy()
         if i == m.activeTab {
             style = style.Inherit(tabActiveStyle)
@@ -397,8 +394,9 @@ func (m model) View() string {
         rightW := m.width - leftW
         panelHeight := m.height - 10
 
+        // Only show breadcrumbs and list, no title
         left := borderStyle.Width(leftW).Height(panelHeight).Render(
-            breadcrumb + "\n" + centerStyle.Render(m.list.View()), // Removed listModel.Title ("Scripts")
+            breadcrumb + "\n" + centerStyle.Render(m.list.View()),
         )
 
         right := borderStyle.Width(rightW).Height(panelHeight).Render(centerStyle.Render(m.vp.View()))
