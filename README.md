@@ -34,9 +34,12 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 # Other Option
 ```bash
+# Clean Up
+[ -d go-pwr ] && rm -rf go-pwr
+rm -f ~/go/bin/go-pwr
+# Install Fresh
 git clone https://github.com/rocketpowerinc/go-pwr.git
 cd go-pwr
 go install
 ```
-Delete binary `rm -f ~/go/bin/go-pwr`
 Then run `~/go/bin/go-pwr`

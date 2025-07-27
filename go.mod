@@ -1,4 +1,4 @@
-module github.com/rocketpowerinc/go-bubble-greeter
+module github.com/rocketpowerinc/go-pwr
 
 go 1.24.5
 
