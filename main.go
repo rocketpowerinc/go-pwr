@@ -229,6 +229,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					if !strings.HasSuffix(sel.name, "/") {
 						m.vp.SetContent("Running script... (see terminal output below)")
 						go func() {
+							// Clear the terminal before running the script
+							// Windows: "cls", Unix: "clear"
+							if isWindows() {
+								exec.Command("cmd", "/c", "cls").Run()
+							} else {
+								exec.Command("clear").Run()
+							}
 							var cmd *exec.Cmd
 							if strings.HasSuffix(sel.name, ".ps1") {
 								cmd = exec.Command("pwsh", sel.path)
@@ -428,6 +435,10 @@ func (d scriptDelegate) Render(w io.Writer, m list.Model, index int, item list.I
 func (d scriptDelegate) Height() int               { return 1 }
 func (d scriptDelegate) Spacing() int              { return 0 }
 func (d scriptDelegate) Update(msg tea.Msg, m *list.Model) tea.Cmd { return nil }
+
+func isWindows() bool {
+    return strings.Contains(strings.ToLower(os.Getenv("OS")), "windows")
+}
 
 func main() {
 	if err := ensureRepo(); err != nil {
