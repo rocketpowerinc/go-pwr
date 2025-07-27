@@ -158,7 +158,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.parentPaths = m.parentPaths[:len(m.parentPaths)-1]
 				m.scriptItems = getScriptItems(parent.path)
 				m.list.SetItems(m.scriptItems)
-				m.list.ResetSelected()
+				m.list.Select(parent.index) // Restore previous selection
 				m.currentPath = parent.path
 				m.vp.SetContent("Select a script to preview...")
 				return m, nil
