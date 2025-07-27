@@ -147,13 +147,16 @@ func readScript(path string) string {
 }
 
 func (m *model) setSizes() {
-	// Always split the terminal in half, minimum width 20 per pane
-	halfW := m.width / 2
-	if halfW < 20 {
-		halfW = 20
+	listW := m.width / 3
+	if listW < 20 {
+		listW = 20
 	}
-	m.list.SetSize(halfW, m.height-10)
-	m.vp.Width = halfW
+	vpW := m.width - listW
+	if vpW < 20 {
+		vpW = 20
+	}
+	m.list.SetSize(listW, m.height-10)
+	m.vp.Width = vpW
 	m.vp.Height = m.height - 10
 }
 
@@ -353,8 +356,7 @@ func (d scriptDelegate) Render(w io.Writer, m list.Model, index int, item list.I
 	if index == m.Index() {
 		style = style.Bold(true).Underline(true)
 	}
-	// Remove .Width(w) so it doesn't shrink/grow based on content
-	fmt.Fprint(w, style.Render(s.name))
+	fmt.Fprint(w, style.Render(s.name)) // No .Width(w)
 }
 
 func (d scriptDelegate) Height() int               { return 1 }
