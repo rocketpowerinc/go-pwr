@@ -394,9 +394,9 @@ func (m model) View() string {
         rightW := m.width - leftW
         panelHeight := m.height - 10
 
-        // Only show breadcrumbs and list, no title
+        // Only show breadcrumbs and list, no title and no extra spacing
         left := borderStyle.Width(leftW).Height(panelHeight).Render(
-            breadcrumb + centerStyle.Render(m.list.View()), // <-- Remove "\n" after breadcrumb
+            breadcrumb + m.list.View(), // <-- Remove centerStyle and any extra spacing
         )
 
         right := borderStyle.Width(rightW).Height(panelHeight).Render(centerStyle.Render(m.vp.View()))
