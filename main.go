@@ -373,12 +373,26 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) View() string {
+    // Render tab bar with custom label "GO-PWR" for the first tab
+    var tabLabels []string
+    for i, name := range m.tabs {
+        label := name
+        if i == 0 {
+            label = "GO-PWR"
+        }
+        style := tabInactiveStyle.Copy()
+        if i == m.activeTab {
+            style = style.Inherit(tabActiveStyle)
+        }
+        tabLabels = append(tabLabels, style.Render(label))
+    }
+    tabBar := tabBarStyle.Render(strings.Join(tabLabels, "  "))
+
     centerStyle := lipgloss.NewStyle().Align(lipgloss.Center).Height(m.height-10)
     breadcrumb := lipgloss.NewStyle().Faint(true).Render(m.currentPath)
 
     var body string
     if m.activeTab == 0 {
-        // Left: 1/3, Right: 2/3 of terminal width
         leftW := m.width / 3
         rightW := m.width - leftW
         panelHeight := m.height - 10
@@ -397,6 +411,7 @@ func (m model) View() string {
     footer := lipgloss.NewStyle().Foreground(pink).MarginTop(1).Align(lipgloss.Center).Render("← → or 🖱️ Click Tabs • ↑↓ Select • Enter Preview • r Run Script • q Quit")
 
     return lipgloss.JoinVertical(lipgloss.Left,
+        tabBar,
         body,
         footer,
     )
