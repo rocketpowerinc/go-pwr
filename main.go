@@ -232,14 +232,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 							var cmd *exec.Cmd
 							if isWindows() {
 								if strings.HasSuffix(sel.name, ".ps1") {
-									// PowerShell: add Read-Host to pause
 									cmd = exec.Command("cmd", "/C", "start", "powershell", "-NoExit", "-Command", sel.path+"; Write-Host ''; Read-Host 'Press Enter to exit'")
 								} else {
-									// Batch: add pause
-									cmd = exec.Command("cmd", "/C", "start", "cmd", "/K", "sh "+sel.path+" & pause")
+									cmd = exec.Command("cmd", "/C", "start", "cmd", "/K", "bash -l "+sel.path+" & pause")
 								}
 							} else {
-								// Try x-terminal-emulator, gnome-terminal, xterm
+								// Use bash -l to load the full profile and environment
 								term := "x-terminal-emulator"
 								if _, err := exec.LookPath(term); err != nil {
 									term = "gnome-terminal"
@@ -247,11 +245,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 								if _, err := exec.LookPath(term); err != nil {
 									term = "xterm"
 								}
-								if strings.HasSuffix(sel.name, ".ps1") {
-									cmd = exec.Command(term, "-e", "bash", "-c", "pwsh "+sel.path+"; echo; read -p 'Press Enter to exit'")
-								} else {
-									cmd = exec.Command(term, "-e", "bash", "-c", "sh "+sel.path+"; echo; read -p 'Press Enter to exit'")
-								}
+								cmd = exec.Command(term, "-e", "bash", "-l", "-c", "bash "+sel.path+"; echo; read -p 'Press Enter to exit'")
 							}
 							err := cmd.Start()
 							if err != nil {
