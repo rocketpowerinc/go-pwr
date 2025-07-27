@@ -68,6 +68,47 @@ var (
 	tabLabelStyle    = lipgloss.NewStyle().Bold(true).MarginBottom(1).Foreground(pink)
 )
 
+// --- Syntax Highlighting Helper ---
+func highlightScript(content, ext string) string {
+	keywordStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("33")) // Blue
+	commentStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("244")) // Grey
+	stringStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("202")) // Orange
+
+	lines := strings.Split(content, "\n")
+	for i, line := range lines {
+		// Highlight comments
+		if idx := strings.Index(line, "#"); idx != -1 {
+			comment := line[idx:]
+			line = line[:idx] + commentStyle.Render(comment)
+		}
+		// Highlight keywords
+		if ext == ".sh" {
+			for _, kw := range []string{"if", "then", "else", "fi", "for", "in", "do", "done", "echo", "exit"} {
+				line = strings.ReplaceAll(line, kw, keywordStyle.Render(kw))
+			}
+		} else if ext == ".ps1" {
+			for _, kw := range []string{"Write-Host", "if", "else", "foreach", "function", "return", "break"} {
+				line = strings.ReplaceAll(line, kw, keywordStyle.Render(kw))
+			}
+		}
+		// Highlight strings in double quotes
+		var out strings.Builder
+		inString := false
+		for _, r := range line {
+			if r == '"' {
+				inString = !inString
+				out.WriteString(stringStyle.Render(string(r)))
+			} else if inString {
+				out.WriteString(stringStyle.Render(string(r)))
+			} else {
+				out.WriteRune(r)
+			}
+		}
+		lines[i] = out.String()
+	}
+	return strings.Join(lines, "\n")
+}
+
 func ensureRepo() error {
 	if _, err := os.Stat("scriptbin"); os.IsNotExist(err) {
 		cmd := exec.Command("git", "clone", "https://github.com/rocketpowerinc/scriptbin.git")
@@ -162,7 +203,17 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.list.SetItems(m.scriptItems)
 				m.list.Select(parent.index) // Restore previous selection
 				m.currentPath = parent.path
-				m.vp.SetContent("Select a script to preview...")
+				// Show preview for selected item
+				if sel, ok := m.list.SelectedItem().(scriptItem); ok {
+					if strings.HasSuffix(sel.name, ".sh") || strings.HasSuffix(sel.name, ".ps1") {
+						ext := filepath.Ext(sel.path)
+						m.vp.SetContent(highlightScript(readScript(sel.path), ext))
+					} else {
+						m.vp.SetContent("Select a script to preview...")
+					}
+				} else {
+					m.vp.SetContent("Select a script to preview...")
+				}
 				return m, nil
 			}
 		case "right":
@@ -179,7 +230,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						if len(m.scriptItems) > 0 {
 							if first, ok := m.scriptItems[0].(scriptItem); ok {
 								if strings.HasSuffix(first.name, ".sh") || strings.HasSuffix(first.name, ".ps1") {
-									m.vp.SetContent(readScript(first.path))
+									ext := filepath.Ext(first.path)
+									m.vp.SetContent(highlightScript(readScript(first.path), ext))
 								} else {
 									m.vp.SetContent("Select a script to preview...")
 								}
@@ -197,7 +249,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					if !strings.HasSuffix(sel.name, "/") {
 						// Preview the script file
 						return m, func() tea.Msg {
-							return outputMsg(readScript(sel.path))
+							ext := filepath.Ext(sel.path)
+							return outputMsg(highlightScript(readScript(sel.path), ext))
 						}
 					}
 				}
@@ -210,7 +263,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if prevIndex != newIndex {
 					if sel, ok := m.list.SelectedItem().(scriptItem); ok {
 						if strings.HasSuffix(sel.name, ".sh") || strings.HasSuffix(sel.name, ".ps1") {
-							m.vp.SetContent(readScript(sel.path))
+							ext := filepath.Ext(sel.path)
+							m.vp.SetContent(highlightScript(readScript(sel.path), ext))
 						} else {
 							m.vp.SetContent("Select a script to preview...")
 						}
@@ -228,7 +282,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if prevIndex != newIndex {
 					if sel, ok := m.list.SelectedItem().(scriptItem); ok {
 						if strings.HasSuffix(sel.name, ".sh") || strings.HasSuffix(sel.name, ".ps1") {
-							m.vp.SetContent(readScript(sel.path))
+							ext := filepath.Ext(sel.path)
+							m.vp.SetContent(highlightScript(readScript(sel.path), ext))
 						} else {
 							m.vp.SetContent("Select a script to preview...")
 						}
