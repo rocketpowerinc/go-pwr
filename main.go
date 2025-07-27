@@ -396,7 +396,7 @@ func (m model) View() string {
 
         // Only show breadcrumbs and list, no title
         left := borderStyle.Width(leftW).Height(panelHeight).Render(
-            breadcrumb + "\n" + centerStyle.Render(m.list.View()),
+            breadcrumb + centerStyle.Render(m.list.View()), // <-- Remove "\n" after breadcrumb
         )
 
         right := borderStyle.Width(rightW).Height(panelHeight).Render(centerStyle.Render(m.vp.View()))
