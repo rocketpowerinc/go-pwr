@@ -309,35 +309,35 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) View() string {
+    var tabLabels []string
+    for i, name := range m.tabs {
+        style := tabInactiveStyle.Copy()
+        if i == m.activeTab {
+            style = style.Inherit(tabActiveStyle)
+        }
+        tabLabels = append(tabLabels, style.Render(name))
+    }
+    tabBar := tabBarStyle.Render(strings.Join(tabLabels, "  "))
 
+    centerStyle := lipgloss.NewStyle().Align(lipgloss.Center).Height(m.height-10)
 
-	var tabLabels []string
-	for i, name := range m.tabs {
-		style := tabInactiveStyle.Copy()
-		if i == m.activeTab {
-			style = style.Inherit(tabActiveStyle)
-		}
-		tabLabels = append(tabLabels, style.Render(name))
-	}
-	tabBar := tabBarStyle.Render(strings.Join(tabLabels, "  "))
+    var body string
+    if m.activeTab == 0 {
+        left := borderStyle.Width(m.width/3).Render(centerStyle.Render(m.list.View()))
+        right := borderStyle.Width(m.width-m.width/3).Render(centerStyle.Render(m.vp.View()))
+        body = lipgloss.JoinHorizontal(lipgloss.Top, left, right)
+    } else {
+        body = borderStyle.Render(centerStyle.Render("A cross-platform script browser powered by Bubble Tea."))
+    }
 
-	var body string
-	if m.activeTab == 0 {
-		left := borderStyle.Render(m.list.View())
-		right := borderStyle.Render(m.vp.View())
-		body = lipgloss.JoinHorizontal(lipgloss.Top, left, right)
-	} else {
-		body = borderStyle.Render("A cross-platform script browser powered by Bubble Tea.")
-	}
+    footer := lipgloss.NewStyle().Foreground(pink).MarginTop(1).Align(lipgloss.Center).Render("← → or 🖱️ Click Tabs • ↑↓ Select • Enter Preview • q Quit")
 
-	footer := lipgloss.NewStyle().Foreground(pink).MarginTop(1).Render("← → or 🖱️ Click Tabs • ↑↓ Select • Enter Preview • q Quit")
-
-	return lipgloss.JoinVertical(lipgloss.Left,
-		headerStyle.Render("🧬 ScriptBin Browser"),
-		tabBar,
-		body,
-		footer,
-	)
+    return lipgloss.JoinVertical(lipgloss.Left,
+        headerStyle.Render("🧬 ScriptBin Browser"),
+        tabBar,
+        body,
+        footer,
+    )
 }
 
 type scriptDelegate struct{}
