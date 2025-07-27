@@ -331,11 +331,10 @@ func (m model) View() string {
         if vpW < 20 {
             vpW = 20
         }
-        // Render each pane with its border and correct width
         left := borderStyle.Width(listW).Height(m.height-10).Render(centerStyle.Render(m.list.View()))
         right := borderStyle.Width(vpW).Height(m.height-10).Render(centerStyle.Render(m.vp.View()))
-        // Use JoinHorizontal to place them side by side
-        body = lipgloss.JoinHorizontal(lipgloss.Top, left, right)
+        gap := lipgloss.NewStyle().Width(1).Render(" ") // 1 space gap
+        body = lipgloss.JoinHorizontal(lipgloss.Top, left, gap, right)
     } else {
         body = borderStyle.Render(centerStyle.Render("A cross-platform script browser powered by Bubble Tea."))
     }
