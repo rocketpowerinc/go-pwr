@@ -283,10 +283,10 @@ func (m model) View() string {
 
 type scriptDelegate struct{}
 
-func (d scriptDelegate) Render(w, h int, item list.Item, selected bool) string {
+func (d scriptDelegate) Render(w io.Writer, m list.Model, index int, item list.Item) {
 	s, ok := item.(scriptItem)
 	if !ok {
-		return ""
+		return
 	}
 	var style lipgloss.Style
 	if strings.HasSuffix(s.name, "/") {
@@ -294,10 +294,10 @@ func (d scriptDelegate) Render(w, h int, item list.Item, selected bool) string {
 	} else {
 		style = lipgloss.NewStyle().Foreground(pink)
 	}
-	if selected {
+	if index == m.Index() {
 		style = style.Bold(true).Underline(true)
 	}
-	return style.Width(w).Render(s.name)
+	fmt.Fprint(w, style.Render(s.name))
 }
 
 func (d scriptDelegate) Height() int               { return 1 }
