@@ -66,21 +66,25 @@ func ensureRepo() error {
 	return nil
 }
 
-func getScriptItems() []list.Item {
+func getScriptItems(root string) []list.Item {
 	var items []list.Item
-	root := "scriptbin"
-	_ = filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
-		if err != nil || info.IsDir() {
-			return nil
+	entries, err := ioutil.ReadDir(root)
+	if err != nil {
+		return items
+	}
+	for _, entry := range entries {
+		// Skip hidden files/folders
+		if strings.HasPrefix(entry.Name(), ".") {
+			continue
 		}
-		// Skip hidden files (starting with a dot)
-		if strings.HasPrefix(info.Name(), ".") {
-			return nil
+		fullPath := filepath.Join(root, entry.Name())
+		if entry.IsDir() {
+			// Add folder as an item (user can traverse into it)
+			items = append(items, scriptItem{name: entry.Name() + "/", path: fullPath})
+		} else if strings.HasSuffix(entry.Name(), ".sh") || strings.HasSuffix(entry.Name(), ".ps1") {
+			items = append(items, scriptItem{name: entry.Name(), path: fullPath})
 		}
-		rel, _ := filepath.Rel(root, path)
-		items = append(items, scriptItem{name: rel, path: path})
-		return nil
-	})
+	}
 	return items
 }
 
@@ -226,7 +230,7 @@ func main() {
 	}
 
 	tabs := []string{"Scripts", "About"}
-	scriptItems := getScriptItems()
+	scriptItems := getScriptItems("scriptbin")
 
 	listModel := list.New(scriptItems, list.NewDefaultDelegate(), 0, 0)
 	listModel.Title = "Scripts"
