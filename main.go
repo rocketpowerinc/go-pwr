@@ -373,30 +373,20 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) View() string {
-    var tabLabels []string
-    for i, name := range m.tabs {
-        style := tabInactiveStyle.Copy()
-        if i == m.activeTab {
-            style = style.Inherit(tabActiveStyle)
-        }
-        tabLabels = append(tabLabels, style.Render(name))
-    }
-    // Remove tabBar from the UI
-    // tabBar := tabBarStyle.Render(strings.Join(tabLabels, "  "))
-
+    // No tab bar
     centerStyle := lipgloss.NewStyle().Align(lipgloss.Center).Height(m.height-10)
-
-    // Breadcrumb path above list
     breadcrumb := lipgloss.NewStyle().Faint(true).Render(m.currentPath)
 
     var body string
     if m.activeTab == 0 {
-        leftW := (m.width - 4) / 3
-        if leftW < 20 {
-            leftW = 20
-        }
-        rightW := leftW
+        // Fixed widths: left, middle (GO-PWR), right
+        goPwrW := 7
         panelHeight := m.height - 10
+
+        // Divide remaining width equally between left and right
+        usableWidth := m.width - goPwrW
+        leftW := usableWidth / 2
+        rightW := usableWidth - leftW
 
         left := borderStyle.Width(leftW).Height(panelHeight).Render(
             breadcrumb + "\n" + centerStyle.Render(m.list.View()),
@@ -407,7 +397,7 @@ func (m model) View() string {
             Bold(true).
             Align(lipgloss.Center, lipgloss.Center).
             Height(panelHeight).
-            Width(7).
+            Width(goPwrW).
             Render("G\nO\n-\nP\nW\nR")
 
         right := borderStyle.Width(rightW).Height(panelHeight).Render(centerStyle.Render(m.vp.View()))
@@ -419,9 +409,7 @@ func (m model) View() string {
 
     footer := lipgloss.NewStyle().Foreground(pink).MarginTop(1).Align(lipgloss.Center).Render("← → or 🖱️ Click Tabs • ↑↓ Select • Enter Preview • r Run Script • q Quit")
 
-    // Remove tabBar from the vertical join
     return lipgloss.JoinVertical(lipgloss.Left,
-        // tabBar, // <-- Remove this line
         body,
         footer,
     )
