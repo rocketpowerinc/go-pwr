@@ -158,7 +158,7 @@ func (m model) View() string {
 }
 
 func main() {
-	tabs := []string{"Windows", "Mac", "LLinux"}
+	tabs := []string{"Windows", "Mac", "Linux"}
 
 	windowsActions := []list.Item{
 		action{"🔒 Lock", "Simulated Windows lock", `echo "Windows Lock"`},
