@@ -45,19 +45,20 @@ type model struct {
 
 type outputMsg string
 
+var pink = lipgloss.Color("205") // ANSI pink, or use "#ff69b4" for hex
+
 var tabColors = []lipgloss.TerminalColor{
-	lipgloss.Color("27"), // Scripts - blue
-	lipgloss.Color("40"), // About - green
+	pink, // Scripts - pink
+	pink, // About - pink
 }
-var tabIcons = []string{"📜", "ℹ️"}
 
 var (
-	borderStyle      = lipgloss.NewStyle().Border(lipgloss.NormalBorder()).Padding(1, 2)
-	tabActiveStyle   = lipgloss.NewStyle().Bold(true).Underline(true).Padding(0, 1)
-	tabInactiveStyle = lipgloss.NewStyle().Faint(true).Padding(0, 1)
-	tabBarStyle      = lipgloss.NewStyle().MarginBottom(1)
-	headerStyle      = lipgloss.NewStyle().Bold(true).MarginBottom(1)
-	tabLabelStyle    = lipgloss.NewStyle().Bold(true).MarginBottom(1)
+	borderStyle      = lipgloss.NewStyle().Border(lipgloss.NormalBorder()).Padding(1, 2).BorderForeground(pink)
+	tabActiveStyle   = lipgloss.NewStyle().Bold(true).Underline(true).Padding(0, 1).Foreground(pink)
+	tabInactiveStyle = lipgloss.NewStyle().Faint(true).Padding(0, 1).Foreground(pink)
+	tabBarStyle      = lipgloss.NewStyle().MarginBottom(1).Foreground(pink)
+	headerStyle      = lipgloss.NewStyle().Bold(true).MarginBottom(1).Foreground(pink)
+	tabLabelStyle    = lipgloss.NewStyle().Bold(true).MarginBottom(1).Foreground(pink)
 )
 
 func ensureRepo() error {
@@ -213,35 +214,35 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) View() string {
-    tabColor := tabColors[m.activeTab]
+	tabColor := pink // Always pink
 
-    var tabLabels []string
-    for i, name := range m.tabs {
-        style := tabInactiveStyle.Copy()
-        if i == m.activeTab {
-            style = style.Inherit(tabActiveStyle).Foreground(tabColors[i])
-        }
-        tabLabels = append(tabLabels, style.Render(name))
-    }
-    tabBar := tabBarStyle.Render(strings.Join(tabLabels, "  "))
+	var tabLabels []string
+	for i, name := range m.tabs {
+		style := tabInactiveStyle.Copy()
+		if i == m.activeTab {
+			style = style.Inherit(tabActiveStyle)
+		}
+		tabLabels = append(tabLabels, style.Render(name))
+	}
+	tabBar := tabBarStyle.Render(strings.Join(tabLabels, "  "))
 
-    var body string
-    if m.activeTab == 0 {
-		left := borderStyle.Copy().BorderForeground(tabColor).Render(m.list.View())
-		right := borderStyle.Copy().BorderForeground(tabColor).Render(m.vp.View())
+	var body string
+	if m.activeTab == 0 {
+		left := borderStyle.Render(m.list.View())
+		right := borderStyle.Render(m.vp.View())
 		body = lipgloss.JoinHorizontal(lipgloss.Top, left, right)
 	} else {
-		body = borderStyle.Copy().BorderForeground(tabColor).Render("A cross-platform script browser powered by Bubble Tea.")
+		body = borderStyle.Render("A cross-platform script browser powered by Bubble Tea.")
 	}
 
-	footer := lipgloss.NewStyle().Foreground(tabColor).MarginTop(1).Render("← → or 🖱️ Click Tabs • ↑↓ Select • Enter Preview • q Quit")
+	footer := lipgloss.NewStyle().Foreground(pink).MarginTop(1).Render("← → or 🖱️ Click Tabs • ↑↓ Select • Enter Preview • q Quit")
 
 	return lipgloss.JoinVertical(lipgloss.Left,
-    headerStyle.Foreground(tabColor).Render("🧬 ScriptBin Browser"),
-    tabBar,
-    body,
-    footer,
-)
+		headerStyle.Render("🧬 ScriptBin Browser"),
+		tabBar,
+		body,
+		footer,
+	)
 }
 
 func main() {
