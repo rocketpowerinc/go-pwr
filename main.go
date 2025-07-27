@@ -373,36 +373,23 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) View() string {
-    // No tab bar
     centerStyle := lipgloss.NewStyle().Align(lipgloss.Center).Height(m.height-10)
     breadcrumb := lipgloss.NewStyle().Faint(true).Render(m.currentPath)
 
     var body string
     if m.activeTab == 0 {
-        // Fixed widths: left, middle (GO-PWR), right
-        goPwrW := 7
+        // Left: 1/3, Right: 2/3 of terminal width
+        leftW := m.width / 3
+        rightW := m.width - leftW
         panelHeight := m.height - 10
-
-        // Divide remaining width equally between left and right
-        usableWidth := m.width - goPwrW
-        leftW := usableWidth / 2
-        rightW := usableWidth - leftW
 
         left := borderStyle.Width(leftW).Height(panelHeight).Render(
             breadcrumb + "\n" + centerStyle.Render(m.list.View()),
         )
 
-        goPwr := lipgloss.NewStyle().
-            Foreground(lipgloss.Color("226")).
-            Bold(true).
-            Align(lipgloss.Center, lipgloss.Center).
-            Height(panelHeight).
-            Width(goPwrW).
-            Render("G\nO\n-\nP\nW\nR")
-
         right := borderStyle.Width(rightW).Height(panelHeight).Render(centerStyle.Render(m.vp.View()))
 
-        body = lipgloss.JoinHorizontal(lipgloss.Top, left, goPwr, right)
+        body = lipgloss.JoinHorizontal(lipgloss.Top, left, right)
     } else {
         body = borderStyle.Render(centerStyle.Render("A cross-platform script browser powered by Bubble Tea."))
     }
