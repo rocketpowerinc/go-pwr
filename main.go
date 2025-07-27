@@ -43,7 +43,6 @@ var tabColors = []lipgloss.TerminalColor{
 
 // Tab label emojis
 var tabIcons = []string{"🪟", "🍎", "🍎"}
-#🐧
 
 var (
 	borderStyle     = lipgloss.NewStyle().Border(lipgloss.NormalBorder()).Padding(1, 2)
