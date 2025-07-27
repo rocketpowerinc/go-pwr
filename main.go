@@ -152,8 +152,8 @@ func (m *model) setSizes() {
 	if halfW < 20 {
 		halfW = 20
 	}
-	m.list.SetSize(halfW-4, m.height-10)
-	m.vp.Width = halfW - 4
+	m.list.SetSize(halfW, m.height-10)
+	m.vp.Width = halfW
 	m.vp.Height = m.height - 10
 }
 
@@ -353,6 +353,7 @@ func (d scriptDelegate) Render(w io.Writer, m list.Model, index int, item list.I
 	if index == m.Index() {
 		style = style.Bold(true).Underline(true)
 	}
+	// Remove .Width(w) so it doesn't shrink/grow based on content
 	fmt.Fprint(w, style.Render(s.name))
 }
 
