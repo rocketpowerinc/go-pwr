@@ -13,6 +13,7 @@ Once Go is installed, set your GOPATH correctly. Then, run the following command
 ```bash
 go install -v github.com/rocketpowerinc/go-pwr@latest
 ```
+Might have to clean cache first `go clean -modcache`
 
 This command will compile the application and place the executable in your `$GOPATH/bin` directory.
 
@@ -30,3 +31,11 @@ Contributions are welcome! If you have suggestions for improvements or new featu
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+# Other Option
+```bash
+git clone https://github.com/rocketpowerinc/go-pwr.git
+cd go-pwr
+go install
+```
+Then run `~/go/bin/go-pwr`
