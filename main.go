@@ -398,7 +398,7 @@ func (m model) View() string {
         panelHeight := m.height - 10
 
         left := borderStyle.Width(leftW).Height(panelHeight).Render(
-            breadcrumb + "\n" + centerStyle.Render(m.list.View()),
+            breadcrumb + "\n" + centerStyle.Render(m.list.View()), // Removed listModel.Title ("Scripts")
         )
 
         right := borderStyle.Width(rightW).Height(panelHeight).Render(centerStyle.Render(m.vp.View()))
