@@ -237,7 +237,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 								if _, err := exec.LookPath(term); err != nil {
 									term = "xterm"
 								}
-								cmd = exec.Command(term, "-e", "bash", "-l", "-c", "clear; bash "+sel.path+"; echo; read -p 'Press Enter to exit'")
+								if strings.HasSuffix(sel.name, ".ps1") {
+									cmd = exec.Command(term, "-e", "bash", "-l", "-c", "clear; pwsh "+sel.path+"; echo; read -p 'Press Enter to exit'")
+								} else {
+									cmd = exec.Command(term, "-e", "bash", "-l", "-c", "clear; bash "+sel.path+"; echo; read -p 'Press Enter to exit'")
+								}
 							}
 							err := cmd.Start()
 							if err != nil {
