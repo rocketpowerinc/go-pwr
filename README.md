@@ -1,7 +1,7 @@
-
 # Go-PWR Application
 
 ## Overview
+
 `go-pwr` is a simple command-line application built using the Go programming language. It utilizes the Bubble Tea framework to create an interactive user interface.
 
 ## Installation
@@ -13,11 +13,13 @@ Once Go is installed, set your GOPATH correctly. Then, run the following command
 ```bash
 go install -v github.com/rocketpowerinc/go-pwr@latest
 ```
+
 This command will compile the application and place the executable in your `$GOPATH/bin` directory.
 
 Might have to clean cache first `go clean -modcache`
 
 If still not getting the latest changes use
+
 ```bash
 [ -d go-pwr ] && rm -rf go-pwr
 rm -f ~/go/bin/go-pwr
@@ -32,9 +34,10 @@ After installation, you can run the application from any directory by executing:
 
 `go-pwr` or call it directly `~/go/bin/go-pwr`
 
-Add to Bash Path
- `echo 'export PATH="$HOME/go/bin:$PATH"' >> ~/.bashrc && source ~/.bashrc`
-
+Linux - Add to Bash Path
+`echo 'export PATH="$HOME/go/bin:$PATH"' >> ~/.bashrc && source ~/.bashrc`
+Mac - Add to ZSH Path
+`echo 'export PATH="$HOME/go/bin:$PATH"' >> ~/.zshrc && source ~/.zshrc`
 
 ## Contributing
 

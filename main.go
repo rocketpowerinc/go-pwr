@@ -228,19 +228,33 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 								} else {
 									cmd = exec.Command("cmd", "/C", "start", "cmd", "/K", "cls && bash -l "+sel.path+" & pause")
 								}
-							} else {
-								// Use bash -l to load the full profile and environment
-								term := "x-terminal-emulator"
-								if _, err := exec.LookPath(term); err != nil {
-									term = "gnome-terminal"
+							} else if isMac() {
+								// Mac: use osascript to open Terminal and run the script
+								scriptCmd := sel.path
+								if strings.HasSuffix(sel.name, ".ps1") {
+									scriptCmd = "pwsh " + sel.path
+								} else {
+									scriptCmd = "bash " + sel.path
 								}
-								if _, err := exec.LookPath(term); err != nil {
-									term = "xterm"
+								osaCmd := fmt.Sprintf(`tell application "Terminal" to do script "clear; %s; echo; read -n 1 -s -r -p 'Press Enter to exit'"`, scriptCmd)
+								cmd = exec.Command("osascript", "-e", osaCmd)
+							} else {
+								// Linux: try common terminals
+								term := ""
+								for _, candidate := range []string{"gnome-terminal", "konsole", "x-terminal-emulator"} {
+									if _, err := exec.LookPath(candidate); err == nil {
+										term = candidate
+										break
+									}
+								}
+								if term == "" {
+									fmt.Println("No supported terminal emulator found.")
+									return
 								}
 								if strings.HasSuffix(sel.name, ".ps1") {
-									cmd = exec.Command(term, "-e", "bash", "-l", "-c", "clear; pwsh "+sel.path+"; echo; read -p 'Press Enter to exit'")
+									cmd = exec.Command(term, "--", "bash", "-l", "-c", "clear; pwsh "+sel.path+"; echo; read -p 'Press Enter to exit'")
 								} else {
-									cmd = exec.Command(term, "-e", "bash", "-l", "-c", "clear; bash "+sel.path+"; echo; read -p 'Press Enter to exit'")
+									cmd = exec.Command(term, "--", "bash", "-l", "-c", "clear; bash "+sel.path+"; echo; read -p 'Press Enter to exit'")
 								}
 							}
 							err := cmd.Start()
@@ -446,6 +460,12 @@ func (d scriptDelegate) Update(msg tea.Msg, m *list.Model) tea.Cmd { return nil 
 
 func isWindows() bool {
 	return strings.Contains(strings.ToLower(os.Getenv("OS")), "windows")
+}
+
+func isMac() bool {
+	return strings.Contains(strings.ToLower(os.Getenv("OSTYPE")), "darwin") ||
+		strings.Contains(strings.ToLower(os.Getenv("MACHTYPE")), "darwin") ||
+		strings.Contains(strings.ToLower(os.Getenv("TERM_PROGRAM")), "apple")
 }
 
 func main() {
