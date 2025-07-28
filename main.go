@@ -384,14 +384,22 @@ func (m model) View() string {
     var body string
     if m.activeTab == 0 {
         leftW := m.width / 3
-        rightW := m.width - leftW
+        // Subtract 4 from rightW to ensure right border is visible (2 for left padding, 2 for right padding)
+        rightW := m.width - leftW - 4
         panelHeight := m.height - 10
 
         left := borderStyle.Width(leftW).Height(panelHeight).Render(
             breadcrumb + m.list.View(),
         )
 
-        right := borderStyle.Width(rightW).Height(panelHeight).Render(centerStyle.Render(m.vp.View()))
+        // Use a border style with explicit right border for the preview window
+        rightBorderStyle := lipgloss.NewStyle().
+            Border(lipgloss.NormalBorder()).
+            BorderForeground(pink).
+            Padding(1, 2).
+            BorderRight(true)
+
+        right := rightBorderStyle.Width(rightW).Height(panelHeight).Render(centerStyle.Render(m.vp.View()))
 
         body = lipgloss.JoinHorizontal(lipgloss.Top, left, right)
     } else {
