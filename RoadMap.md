@@ -3,6 +3,7 @@
 
 # Bugs to fix
 - ~~Can't see right boarder of preview window, even in full screen~~
+- ~~Fixed ps1 scripts not opening on linux~~
 
 # Test
 - Test App on Mac
