@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -46,45 +45,38 @@ type model struct {
 	tabs        []string
 	scriptItems []list.Item
 	focus       focusArea
-	currentPath string // Track current directory
-	parentPaths []parentNav // Track parent directories and selected index
+	currentPath string
+	parentPaths []parentNav
 }
 
 type outputMsg string
 
-var pink = lipgloss.Color("205") // ANSI pink
-var purple = lipgloss.Color("93") // ANSI purple
-
-var tabColors = []lipgloss.TerminalColor{
-	pink, // Scripts - pink
-	pink, // About - pink
-}
+var pink = lipgloss.Color("205")
+var purple = lipgloss.Color("93")
 
 var (
 	borderStyle      = lipgloss.NewStyle().Border(lipgloss.NormalBorder()).Padding(1, 2).BorderForeground(pink)
 	tabActiveStyle   = lipgloss.NewStyle().Bold(true).Underline(true).Padding(0, 1).Foreground(pink)
 	tabInactiveStyle = lipgloss.NewStyle().Faint(true).Padding(0, 1).Foreground(pink)
 	tabBarStyle      = lipgloss.NewStyle().MarginBottom(1).Foreground(pink)
-	headerStyle      = lipgloss.NewStyle().Bold(true).MarginBottom(1).Foreground(pink)
-	tabLabelStyle    = lipgloss.NewStyle().Bold(true).MarginBottom(1).Foreground(pink)
 )
 
 // --- Syntax Highlighting Helper ---
-func highlightScript(content, ext string) string {
-	keywordStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("33")) // Blue
-	commentStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("244")) // Grey
-	stringStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("202")) // Orange
+var (
+	keywordStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("33"))   // Blue
+	commentStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("244"))  // Grey
+	stringStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("202"))  // Orange
+)
 
+func highlightScript(content, ext string) string {
 	lines := strings.Split(content, "\n")
 	for i, line := range lines {
-		// Highlight comments first
 		commentIdx := strings.Index(line, "#")
 		isComment := commentIdx == 0 || (commentIdx > 0 && strings.TrimSpace(line[:commentIdx]) == "")
 		if commentIdx != -1 {
 			comment := line[commentIdx:]
 			line = line[:commentIdx] + commentStyle.Render(comment)
 		}
-		// Highlight keywords (skip comments)
 		if !isComment {
 			if ext == ".sh" {
 				for _, kw := range []string{"if", "then", "else", "fi", "for", "in", "do", "done", "echo", "exit"} {
@@ -95,7 +87,6 @@ func highlightScript(content, ext string) string {
 					line = strings.ReplaceAll(line, kw, keywordStyle.Render(kw))
 				}
 			}
-			// Highlight strings in double quotes (skip comments)
 			var out strings.Builder
 			inString := false
 			for _, r := range line {
@@ -119,18 +110,20 @@ func ensureRepo() error {
 	root := filepath.Clean("scriptbin")
 	if _, err := os.Stat(root); os.IsNotExist(err) {
 		cmd := exec.Command("git", "clone", "https://github.com/rocketpowerinc/scriptbin.git")
-		return cmd.Run()
+		out, err := cmd.CombinedOutput()
+		if err != nil {
+			return fmt.Errorf("git clone error: %v\n%s", err, string(out))
+		}
 	}
 	return nil
 }
 
 func getScriptItems(root string) []list.Item {
 	var items []list.Item
-	entries, err := ioutil.ReadDir(root)
+	entries, err := os.ReadDir(root)
 	if err != nil {
 		return items
 	}
-	// Sort: folders first, then files, both alphabetically
 	sort.Slice(entries, func(i, j int) bool {
 		if entries[i].IsDir() && !entries[j].IsDir() {
 			return true
@@ -155,7 +148,7 @@ func getScriptItems(root string) []list.Item {
 }
 
 func readScript(path string) string {
-	data, err := ioutil.ReadFile(path)
+	data, err := os.ReadFile(path)
 	if err != nil {
 		return fmt.Sprintf("Error reading file: %v", err)
 	}
@@ -211,7 +204,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.activeTab = (m.activeTab + 1) % len(m.tabs)
 			if m.activeTab == 0 {
 				m.list.SetItems(m.scriptItems)
-				// Show preview for selected item when switching back to Scripts tab
 				if sel, ok := m.list.SelectedItem().(scriptItem); ok {
 					if strings.HasSuffix(sel.name, ".sh") || strings.HasSuffix(sel.name, ".ps1") {
 						ext := filepath.Ext(sel.path)
@@ -367,70 +359,62 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) View() string {
-    var tabLabels []string
-    for i, name := range m.tabs {
-        label := name
-        style := tabInactiveStyle.Copy()
-        if i == m.activeTab {
-            style = style.Inherit(tabActiveStyle)
-        }
-        tabLabels = append(tabLabels, style.Render(label))
-    }
-    tabBar := tabBarStyle.Render(strings.Join(tabLabels, "  "))
+	var tabLabels []string
+	for i, name := range m.tabs {
+		label := name
+		style := tabInactiveStyle.Copy()
+		if i == m.activeTab {
+			style = style.Inherit(tabActiveStyle)
+		}
+		tabLabels = append(tabLabels, style.Render(label))
+	}
+	tabBar := tabBarStyle.Render(strings.Join(tabLabels, "  "))
 
-    centerStyle := lipgloss.NewStyle().Align(lipgloss.Center).Height(m.height-10)
-    breadcrumb := lipgloss.NewStyle().Faint(true).Render(m.currentPath)
+	centerStyle := lipgloss.NewStyle().Align(lipgloss.Center).Height(m.height-10)
+	breadcrumb := lipgloss.NewStyle().Faint(true).Render(m.currentPath)
 
-    var body string
-    if m.activeTab == 0 {
-        leftW := m.width / 3
-        // Subtract 4 from rightW to ensure right border is visible (2 for left padding, 2 for right padding)
-        rightW := m.width - leftW - 4
-        panelHeight := m.height - 10
+	var body string
+	if m.activeTab == 0 {
+		leftW := m.width / 3
+		rightW := m.width - leftW - 4
+		panelHeight := m.height - 10
 
-        left := borderStyle.Width(leftW).Height(panelHeight).Render(
-            breadcrumb + m.list.View(),
-        )
+		left := borderStyle.Width(leftW).Height(panelHeight).Render(
+			breadcrumb + m.list.View(),
+		)
 
-        // Use a border style with explicit right border for the preview window
-        rightBorderStyle := lipgloss.NewStyle().
-            Border(lipgloss.NormalBorder()).
-            BorderForeground(pink).
-            Padding(1, 2).
-            BorderRight(true)
+		rightBorderStyle := borderStyle.Copy().BorderRight(true)
+		right := rightBorderStyle.Width(rightW).Height(panelHeight).Render(centerStyle.Render(m.vp.View()))
 
-        right := rightBorderStyle.Width(rightW).Height(panelHeight).Render(centerStyle.Render(m.vp.View()))
+		body = lipgloss.JoinHorizontal(lipgloss.Top, left, right)
+	} else {
+		grey := lipgloss.Color("244")
+		aboutStyle := lipgloss.NewStyle().
+			Border(lipgloss.NormalBorder()).
+			BorderForeground(grey).
+			Foreground(grey).
+			Align(lipgloss.Center, lipgloss.Center).
+			Width(m.width / 2).
+			Height(m.height / 2)
+		body = lipgloss.Place(m.width, m.height-10, lipgloss.Center, lipgloss.Center,
+			aboutStyle.Render("A cross-platform script browser powered by RocketPowerInc.\n\nMade with Bubble Tea, Lipgloss, and Go. \n\nVisit us at https://github.com/rocketpowerinc"),
+		)
+	}
 
-        body = lipgloss.JoinHorizontal(lipgloss.Top, left, right)
-    } else {
-        // About screen: single centered window with grey border and grey text
-        grey := lipgloss.Color("244")
-        aboutStyle := lipgloss.NewStyle().
-            Border(lipgloss.NormalBorder()).
-            BorderForeground(grey).
-            Foreground(grey).
-            Align(lipgloss.Center, lipgloss.Center).
-            Width(m.width / 2).
-            Height(m.height / 2)
-        body = lipgloss.Place(m.width, m.height-10, lipgloss.Center, lipgloss.Center,
-            aboutStyle.Render("A cross-platform script browser powered by RocketPowerInc.\n\nMade with Bubble Tea, Lipgloss, and Go. \n\nVisit us at https://github.com/rocketpowerinc"),
-        )
-    }
+	footer := lipgloss.NewStyle().Foreground(pink).MarginTop(1).Align(lipgloss.Center).Render("← → or 🖱️ Click Tabs • ↑↓ Select • Enter Preview • r Run Script • q Quit")
 
-    footer := lipgloss.NewStyle().Foreground(pink).MarginTop(1).Align(lipgloss.Center).Render("← → or 🖱️ Click Tabs • ↑↓ Select • Enter Preview • r Run Script • q Quit")
-
-    if m.activeTab == 0 {
-        return lipgloss.JoinVertical(lipgloss.Left,
-            tabBar,
-            body,
-            footer,
-        )
-    } else {
-        return lipgloss.JoinVertical(lipgloss.Left,
-            tabBar,
-            body,
-        )
-    }
+	if m.activeTab == 0 {
+		return lipgloss.JoinVertical(lipgloss.Left,
+			tabBar,
+			body,
+			footer,
+		)
+	} else {
+		return lipgloss.JoinVertical(lipgloss.Left,
+			tabBar,
+			body,
+		)
+	}
 }
 
 type scriptDelegate struct{}
@@ -449,7 +433,7 @@ func (d scriptDelegate) Render(w io.Writer, m list.Model, index int, item list.I
 	if index == m.Index() {
 		style = style.Bold(true).Underline(true)
 	}
-	fmt.Fprint(w, style.Render(s.name)) // No .Width(w)
+	fmt.Fprint(w, style.Render(s.name))
 }
 
 func (d scriptDelegate) Height() int               { return 1 }
@@ -457,7 +441,7 @@ func (d scriptDelegate) Spacing() int              { return 0 }
 func (d scriptDelegate) Update(msg tea.Msg, m *list.Model) tea.Cmd { return nil }
 
 func isWindows() bool {
-    return strings.Contains(strings.ToLower(os.Getenv("OS")), "windows")
+	return strings.Contains(strings.ToLower(os.Getenv("OS")), "windows")
 }
 
 func main() {

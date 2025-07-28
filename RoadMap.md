@@ -25,3 +25,8 @@
   - Windows
   - Mac
   - Linux
+
+# AI Continuous Help
+- Ask it to optimise
+- Ask it to look for vulnerabilty
+- Ask it for error checking and dubugging
