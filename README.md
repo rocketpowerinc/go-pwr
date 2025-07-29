@@ -28,7 +28,61 @@ cd go-pwr
 go install
 ```
 
-## Usage
+# Aliases
+
+- Windows
+
+```
+$gooAlias = @"
+function goo {
+    Remove-Item -Recurse -Force go-pwr -ErrorAction SilentlyContinue
+    Remove-Item -Force `"$HOME\go\bin\go-pwr.exe`" -ErrorAction SilentlyContinue
+    git clone https://github.com/rocketpowerinc/go-pwr.git
+    Set-Location go-pwr
+    go install
+    & `"$HOME\go\bin\go-pwr.exe`"
+}
+"@
+
+$gooAlias | Out-File -Append -Encoding UTF8 $PROFILE
+```
+
+- Linux
+
+```
+cat << 'EOF' >> ~/.bashrc
+# Alias to reinstall go-pwr
+alias goo='
+  rm -rf go-pwr && \
+  rm -f ~/go/bin/go-pwr && \
+  git clone https://github.com/rocketpowerinc/go-pwr.git && \
+  cd go-pwr && \
+  go install && \
+  ~/go/bin/go-pwr'
+EOF
+```
+
+- Mac
+
+```
+cat << 'EOF' >> ~/.zshrc
+# Alias to reinstall go-pwr
+alias goo='
+  rm -rf go-pwr && \
+  rm -f ~/go/bin/go-pwr && \
+  git clone https://github.com/rocketpowerinc/go-pwr.git && \
+  cd go-pwr && \
+  go install
+  ~/go/bin/go-pwr'
+EOF
+```
+
+- Then Source
+  - `. $PROFILE`
+  - `source ~/.bashrc`
+  - `source ~/.zshrc`
+
+## Usage/Export
 
 After installation, you can run the application from any directory by executing:
 
