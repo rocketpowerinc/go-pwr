@@ -622,7 +622,7 @@ func (m model) View() string {
 			Padding(1, 2).
 			Width(rightContentWidth).
 			Height(panelHeight).
-			Render(sanitizeContent(m.vp.View()))
+			Render(m.vp.View())
 
 		body = lipgloss.JoinHorizontal(lipgloss.Top, leftPanel, rightPanel)
 	} else {
@@ -698,25 +698,20 @@ func isScriptFile(filename string) bool {
 
 // sanitizeContent ensures content doesn't break border rendering
 func sanitizeContent(content string) string {
-	// Remove any potential border-breaking characters
-	content = strings.ReplaceAll(content, "\x00", "")     // Null bytes
-	content = strings.ReplaceAll(content, "\x1b[", "ESC[") // Convert ANSI escapes to visible text
+	// Only remove truly problematic characters that break borders
+	content = strings.ReplaceAll(content, "\x00", "")     // Null bytes only
 	content = strings.ReplaceAll(content, "\r", "")       // Remove carriage returns
 	
-	// Ensure content doesn't exceed reasonable line lengths
+	// Don't touch ANSI sequences - they're needed for syntax highlighting!
+	// Only limit extremely long lines to prevent layout issues
 	lines := strings.Split(content, "\n")
 	for i, line := range lines {
-		if len(line) > 1000 { // Prevent extremely long lines
-			lines[i] = line[:1000] + "..."
+		if len(line) > 2000 { // Very generous limit
+			lines[i] = line[:2000] + "..."
 		}
 	}
 	
 	return strings.Join(lines, "\n")
-}
-
-// Helper to set viewport content with sanitization
-func (m *model) setViewportContent(content string) {
-	m.vp.SetContent(sanitizeContent(content))
 }
 
 func main() {
@@ -749,7 +744,7 @@ func main() {
 		if s, ok := scriptItems[0].(scriptItem); ok {
 			if isScriptFile(s.name) {
 				ext := filepath.Ext(s.path)
-				vp.SetContent(sanitizeContent(highlightScript(readScript(s.path, cache), ext)))
+				vp.SetContent(highlightScript(readScript(s.path, cache), ext))
 			}
 		}
 	}
