@@ -251,14 +251,13 @@ func readScript(path string, cache *scriptCache) string {
 }
 
 func (m *model) setSizes() {
-	// ABSOLUTE STATIC LAYOUT - exact same calculations as View()
-	totalWidth := m.width
-	leftPanelWidth := totalWidth / 3
-	rightPanelWidth := totalWidth - leftPanelWidth
+	// SIMPLE STATIC LAYOUT - same calculations as View()
+	leftPanelWidth := m.width / 3
+	rightPanelWidth := (m.width * 2) / 3
 	
-	// Content area accounting for borders and padding (6 chars each side)
-	leftContentWidth := leftPanelWidth - 6
-	rightContentWidth := rightPanelWidth - 6
+	// Content area accounting for borders and padding
+	leftContentWidth := leftPanelWidth - 8
+	rightContentWidth := rightPanelWidth - 8
 	
 	// Ensure positive values
 	if leftContentWidth < 5 {
@@ -523,48 +522,52 @@ func (m model) View() string {
 
 	var body string
 	if m.activeTab == 0 {
-		// ULTIMATE SIMPLE APPROACH - Just use Place() correctly
-		totalWidth := m.width
-		totalHeight := m.height - 10
-		
-		// Exact positioning
-		leftWidth := totalWidth / 3
-		rightWidth := totalWidth - leftWidth
-		
-		// Create content
-		maxBreadcrumbWidth := leftWidth - 15
-		if maxBreadcrumbWidth < 5 {
-			maxBreadcrumbWidth = 5
+		// SIMPLE STATIC LAYOUT - Back to basics that worked
+		leftPanelWidth := m.width / 3
+		rightPanelWidth := (m.width * 2) / 3
+		panelHeight := m.height - 10
+
+		// Truncate breadcrumb to prevent it from affecting panel size
+		maxBreadcrumbWidth := leftPanelWidth - 8 // Account for border + padding
+		if maxBreadcrumbWidth < 10 {
+			maxBreadcrumbWidth = 10
 		}
 		
 		truncatedPath := m.currentPath
 		if len(truncatedPath) > maxBreadcrumbWidth {
+			// Truncate from the beginning, keeping the end
 			truncatedPath = "..." + truncatedPath[len(truncatedPath)-maxBreadcrumbWidth+3:]
 		}
 		
-		breadcrumb := lipgloss.NewStyle().Faint(true).Render(truncatedPath)
+		// Enforce maximum width to guarantee no overflow
+		breadcrumb := lipgloss.NewStyle().
+			Faint(true).
+			Width(maxBreadcrumbWidth).
+			Render(truncatedPath)
+
+		// Content with controlled breadcrumb that cannot affect panel sizing
 		leftContent := breadcrumb + "\n" + m.list.View()
 		rightContent := m.vp.View()
 
-		// Create panels naturally - no size constraints
+		// Create panels with explicit dimensions - simple and stable
 		leftPanel := lipgloss.NewStyle().
 			Border(lipgloss.NormalBorder()).
 			BorderForeground(pink).
+			Width(leftPanelWidth).
+			Height(panelHeight).
 			Padding(1, 2).
 			Render(leftContent)
 
 		rightPanel := lipgloss.NewStyle().
 			Border(lipgloss.NormalBorder()).
 			BorderForeground(pink).
+			Width(rightPanelWidth).
+			Height(panelHeight).
 			Padding(1, 2).
 			Render(rightContent)
 
-		// Force EXACT dimensions with Place() - this MUST work
-		leftFinal := lipgloss.Place(leftWidth, totalHeight, lipgloss.Left, lipgloss.Top, leftPanel)
-		rightFinal := lipgloss.Place(rightWidth, totalHeight, lipgloss.Left, lipgloss.Top, rightPanel)
-
-		// Join - both are now exactly the same height
-		body = lipgloss.JoinHorizontal(lipgloss.Top, leftFinal, rightFinal)
+		// Simple join - no Place() complications
+		body = lipgloss.JoinHorizontal(lipgloss.Top, leftPanel, rightPanel)
 	} else {
 		grey := lipgloss.Color("244")
 		aboutStyle := lipgloss.NewStyle().

@@ -15,11 +15,11 @@
 - ~~Height mismatch: Panels having different heights~~
 - ~~Content breaking borders: Scripts with special characters breaking border rendering~~
 - ~~Width calculation: Total width exceeding terminal width~~
-- ~~Right pane changing size dynamically - now enforced with lipgloss.Place~~
-- ~~Breadcrumb affecting left panel size - now truncated and width-controlled~~
+- ~~Right pane changing size dynamically - FIXED with static Width/Height styles~~
+- ~~Breadcrumb affecting left panel size - FIXED with truncation~~
 - ~~Shell script (.sh) content breaking borders - FIXED by removing syntax highlighting~~
 - ~~Preview content corruption - FIXED by removing syntax highlighting~~
-- Right border visibility and perfect panel height alignment - STUBBORN ISSUE - trying Place() approach
+- Minor height difference between panels - ACCEPTABLE (user can live with it)
 
 # Test
 
