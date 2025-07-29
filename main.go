@@ -523,13 +523,16 @@ func (m model) View() string {
 
 	var body string
 	if m.activeTab == 0 {
-		// MANUAL PIXEL-PERFECT LAYOUT - Ultimate control approach
+		// CONTENT-HEIGHT CONTROLLED LAYOUT - Force identical content heights
 		containerWidth := m.width
 		containerHeight := m.height - 10
 		
 		// Calculate exact dimensions
 		leftWidth := containerWidth / 3
 		rightWidth := containerWidth - leftWidth
+		
+		// CRITICAL: Control content height to ensure identical panel heights
+		contentHeight := containerHeight - 4 // Account for borders (2 top + 2 bottom)
 		
 		// Create content with proper truncation
 		maxBreadcrumbWidth := leftWidth - 10
@@ -543,10 +546,21 @@ func (m model) View() string {
 		}
 		
 		breadcrumb := lipgloss.NewStyle().Faint(true).Render(truncatedPath)
-		leftContent := breadcrumb + "\n" + m.list.View()
-		rightContent := m.vp.View()
+		
+		// Get base content
+		leftBaseContent := breadcrumb + "\n" + m.list.View()
+		rightBaseContent := m.vp.View()
+		
+		// FORCE IDENTICAL CONTENT HEIGHTS by padding/truncating
+		leftContent := lipgloss.NewStyle().
+			Height(contentHeight).
+			Render(leftBaseContent)
+			
+		rightContent := lipgloss.NewStyle().
+			Height(contentHeight).
+			Render(rightBaseContent)
 
-		// Create basic panels with borders
+		// Create panels with borders - content height is now controlled
 		leftPanel := lipgloss.NewStyle().
 			Border(lipgloss.NormalBorder()).
 			BorderForeground(pink).
@@ -559,8 +573,7 @@ func (m model) View() string {
 			Padding(1, 2).
 			Render(rightContent)
 
-		// Force EXACT dimensions using Place with precise measurements
-		// This ensures both panels are exactly the same height and preserve borders
+		// Force container dimensions for width control
 		leftForced := lipgloss.Place(
 			leftWidth, containerHeight,
 			lipgloss.Left, lipgloss.Top,
@@ -573,7 +586,7 @@ func (m model) View() string {
 			rightPanel,
 		)
 
-		// Simple horizontal join - both containers are now identical height
+		// Join the identically-sized containers
 		body = lipgloss.JoinHorizontal(lipgloss.Top, leftForced, rightForced)
 	} else {
 		grey := lipgloss.Color("244")
