@@ -217,7 +217,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		case "r":
 			if m.activeTab == 0 && m.focus == focusList {
+				m.list, _ = m.list.Update(msg) // Ensure list state is updated
 				if sel, ok := m.list.SelectedItem().(scriptItem); ok {
+					fmt.Println("Selected script:", sel.name, sel.path) // Debug print
 					if !strings.HasSuffix(sel.name, "/") {
 						m.vp.SetContent("Running script in a new terminal window...")
 						go func() {
@@ -320,6 +322,7 @@ end tell`, scriptCmd)
 		case "enter":
 			if m.activeTab == 0 && m.focus == focusList {
 				if sel, ok := m.list.SelectedItem().(scriptItem); ok {
+					fmt.Println("Selected script:", sel.name, sel.path) // Debug print
 					if !strings.HasSuffix(sel.name, "/") {
 						// Preview the script file
 						return m, func() tea.Msg {
