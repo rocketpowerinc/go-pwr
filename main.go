@@ -194,8 +194,28 @@ func highlightStrings(line string) string {
 	return out.String()
 }
 
+// getScriptbinPath returns the path where scriptbin should be stored
+// It uses a consistent location in the user's home directory
+func getScriptbinPath() (string, error) {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return "", fmt.Errorf("failed to get user home directory: %v", err)
+	}
+	
+	// Create a .go-pwr directory in the user's home for storing scriptbin
+	appDir := filepath.Join(homeDir, ".go-pwr")
+	if err := os.MkdirAll(appDir, 0755); err != nil {
+		return "", fmt.Errorf("failed to create app directory: %v", err)
+	}
+	
+	return filepath.Join(appDir, "scriptbin"), nil
+}
+
 func ensureRepo() error {
-	root := filepath.Clean("scriptbin")
+	root, err := getScriptbinPath()
+	if err != nil {
+		return err
+	}
 	
 	// Always remove and re-clone for fresh content
 	if _, err := os.Stat(root); err == nil {
@@ -204,8 +224,7 @@ func ensureRepo() error {
 		}
 	}
 	
-	cmd := exec.Command("git", "clone", "https://github.com/rocketpowerinc/scriptbin.git")
-	cmd.Dir = "." // Ensure we're in the current directory
+	cmd := exec.Command("git", "clone", "https://github.com/rocketpowerinc/scriptbin.git", root)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("git clone error: %v\n%s", err, string(out))
@@ -607,8 +626,15 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Get the proper scriptbin path
+	scriptbinPath, err := getScriptbinPath()
+	if err != nil {
+		fmt.Println("Error getting scriptbin path:", err)
+		os.Exit(1)
+	}
+
 	tabs := []string{"Scripts", "About"}
-	scriptItems := getScriptItems(filepath.Clean("scriptbin"))
+	scriptItems := getScriptItems(scriptbinPath)
 	cache := newScriptCache()
 
 	listModel := list.New(scriptItems, scriptDelegate{}, 0, 0)
@@ -635,7 +661,7 @@ func main() {
 		tabs:        tabs,
 		scriptItems: scriptItems,
 		activeTab:   0,
-		currentPath: filepath.Clean("scriptbin"),
+		currentPath: scriptbinPath,
 		parentPaths: []parentNav{},
 		cache:       cache,
 	}

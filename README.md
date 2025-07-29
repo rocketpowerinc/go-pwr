@@ -4,6 +4,8 @@
 
 `go-pwr` is a simple command-line application built using the Go programming language. It utilizes the Bubble Tea framework to create an interactive user interface.
 
+The application automatically clones the [scriptbin repository](https://github.com/rocketpowerinc/scriptbin) to `~/.go-pwr/scriptbin` (or `%USERPROFILE%\.go-pwr\scriptbin` on Windows) for consistent access regardless of where the application is run from.
+
 ## Installation
 
 To install the Go Power application, ensure that you have Go installed on your computer. You can download it from the official Go website: https://golang.org/dl/.
