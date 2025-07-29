@@ -114,6 +114,9 @@ func highlightScript(content, ext string) string {
 		return content
 	}
 	
+	// Sanitize content first, especially important for shell scripts
+	content = sanitizeContentForBorders(content)
+	
 	lines := strings.Split(content, "\n")
 	var keywords []string
 	
@@ -192,6 +195,24 @@ func highlightStrings(line string) string {
 		}
 	}
 	return out.String()
+}
+
+// sanitizeContentForBorders removes or escapes characters that can break border rendering
+// This is especially important for shell scripts which may contain special characters
+func sanitizeContentForBorders(content string) string {
+	// Replace problematic characters that can break terminal rendering
+	content = strings.ReplaceAll(content, "\r\n", "\n") // Normalize line endings
+	content = strings.ReplaceAll(content, "\r", "\n")   // Handle old Mac line endings
+	
+	// Remove or escape characters that might interfere with borders
+	lines := strings.Split(content, "\n")
+	for i, line := range lines {
+		// Ensure line doesn't end with escape sequences that might affect next line
+		line = strings.TrimRight(line, "\x1b[0m") // Remove trailing reset codes
+		lines[i] = line
+	}
+	
+	return strings.Join(lines, "\n")
 }
 
 // getScriptbinPath returns the path where scriptbin should be stored
@@ -593,12 +614,14 @@ func (m model) View() string {
 	var body string
 	if m.activeTab == 0 {
 		// ABSOLUTE STATIC LAYOUT - exact pixel dimensions, never change
-		leftPanelWidth := m.width / 3
-		rightPanelWidth := (m.width * 2) / 3
+		// Ensure we leave room for borders by subtracting border widths
+		borderWidth := 2 // Each border is 1 char on each side
+		leftPanelWidth := (m.width / 3) - borderWidth
+		rightPanelWidth := ((m.width * 2) / 3) - borderWidth
 		panelHeight := m.height - 10
 
 		// Truncate breadcrumb to prevent it from affecting panel size
-		maxBreadcrumbWidth := leftPanelWidth - 8 // Account for border + padding
+		maxBreadcrumbWidth := leftPanelWidth - 4 // Account for padding
 		if maxBreadcrumbWidth < 10 {
 			maxBreadcrumbWidth = 10
 		}
@@ -618,25 +641,44 @@ func (m model) View() string {
 		// Content with controlled breadcrumb that cannot affect panel sizing
 		leftContent := breadcrumb + "\n" + m.list.View()
 		rightContent := m.vp.View()
+		
+		// For shell scripts, apply additional content width control to prevent border breaking
+		// Check if we're viewing a shell script by checking current selection
+		if sel := m.list.SelectedItem(); sel != nil {
+			if item, ok := sel.(scriptItem); ok && strings.HasSuffix(item.name, ".sh") {
+				// This is a shell script, ensure content fits properly to prevent border issues
+				maxContentWidth := rightPanelWidth - 4 // Account for padding only, border handled above
+				lines := strings.Split(rightContent, "\n")
+				for i, line := range lines {
+					// Simple length check to prevent overflow
+					if len(line) > maxContentWidth {
+						// Truncate long lines to prevent border overflow
+						lines[i] = line[:maxContentWidth-3] + "..."
+					}
+				}
+				rightContent = strings.Join(lines, "\n")
+			}
+		}
 
-		// Create panels with exact, enforced dimensions
+		// Create panels with exact, enforced dimensions and proper content constraints
 		leftPanel := lipgloss.NewStyle().
 			Border(lipgloss.NormalBorder()).
 			BorderForeground(pink).
+			Width(leftPanelWidth).
+			Height(panelHeight).
 			Padding(1, 2).
 			Render(leftContent)
 
 		rightPanel := lipgloss.NewStyle().
 			Border(lipgloss.NormalBorder()).
 			BorderForeground(pink).
+			Width(rightPanelWidth).
+			Height(panelHeight).
 			Padding(1, 2).
 			Render(rightContent)
 
-		// Force exact panel sizes using Place - this CANNOT be overridden by content
-		leftForced := lipgloss.Place(leftPanelWidth, panelHeight, lipgloss.Left, lipgloss.Top, leftPanel)
-		rightForced := lipgloss.Place(rightPanelWidth, panelHeight, lipgloss.Left, lipgloss.Top, rightPanel)
-
-		body = lipgloss.JoinHorizontal(lipgloss.Top, leftForced, rightForced)
+		// Use direct Join instead of Place to preserve borders
+		body = lipgloss.JoinHorizontal(lipgloss.Top, leftPanel, rightPanel)
 	} else {
 		grey := lipgloss.Color("244")
 		aboutStyle := lipgloss.NewStyle().

@@ -12,6 +12,9 @@
 - ~~Content breaking borders: Scripts with special characters breaking border rendering~~
 - ~~Width calculation: Total width exceeding terminal width~~
 - ~~Right pane changing size dynamically - now enforced with lipgloss.Place~~
+- ~~Breadcrumb affecting left panel size - now truncated and width-controlled~~
+- ~~Missing right border - fixed by proper width calculations~~
+- ~~Shell script (.sh) content breaking borders - added content sanitization~~
 
 # Test
 
@@ -37,6 +40,10 @@
   - Windows
   - Mac
   - Linux
+
+# My Scripts
+
+- Alot of them will use gum -choose
 
 # AI Continuous Help
 
