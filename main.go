@@ -342,6 +342,30 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			} else {
 				m.vp.SetContent("A cross-platform script browser powered by RocketPowerInc.")
 			}
+		case "shift+tab":
+			m.activeTab = (m.activeTab - 1 + len(m.tabs)) % len(m.tabs)
+			if m.activeTab == 0 {
+				m.list.SetItems(m.scriptItems)
+				if sel, ok := m.list.SelectedItem().(scriptItem); ok {
+					if strings.HasSuffix(sel.name, ".sh") || strings.HasSuffix(sel.name, ".ps1") {
+						ext := filepath.Ext(sel.path)
+						m.vp.SetContent(highlightScript(readScript(sel.path, m.cache), ext))
+					} else {
+						m.vp.SetContent("Select a script to preview...")
+					}
+				}
+			} else {
+				m.vp.SetContent("A cross-platform script browser powered by RocketPowerInc.")
+			}
+		case "ctrl+tab":
+			// Switch focus between list and preview panes (only in Scripts tab)
+			if m.activeTab == 0 {
+				if m.focus == focusList {
+					m.focus = focusPreview
+				} else {
+					m.focus = focusList
+				}
+			}
 		case "r":
 			if m.activeTab == 0 && m.focus == focusList {
 				m.list, _ = m.list.Update(msg) // Ensure list state is updated
@@ -398,30 +422,57 @@ end tell`, scriptCmd)
 				}
 			}
 		case "left":
-			// Go back to parent directory if possible
-			if m.activeTab == 0 && m.focus == focusList && m.currentPath != "" && len(m.parentPaths) > 0 {
-				parent := m.parentPaths[len(m.parentPaths)-1]
-				m.parentPaths = m.parentPaths[:len(m.parentPaths)-1]
-				m.scriptItems = getScriptItems(parent.path)
-				m.list.SetItems(m.scriptItems)
-				m.list.Select(parent.index) // Restore previous selection
-				m.currentPath = parent.path
-				// Show preview for selected item
-				if sel, ok := m.list.SelectedItem().(scriptItem); ok {
-					if strings.HasSuffix(sel.name, ".sh") || strings.HasSuffix(sel.name, ".ps1") {
-						ext := filepath.Ext(sel.path)
-						m.vp.SetContent(highlightScript(readScript(sel.path, m.cache), ext))
+			// Check if we're in Scripts tab and can navigate tabs
+			if m.focus == focusPreview || m.currentPath == "" || len(m.parentPaths) == 0 {
+				// Navigate to previous tab
+				m.activeTab = (m.activeTab - 1 + len(m.tabs)) % len(m.tabs)
+				if m.activeTab == 0 {
+					m.list.SetItems(m.scriptItems)
+					if sel, ok := m.list.SelectedItem().(scriptItem); ok {
+						if strings.HasSuffix(sel.name, ".sh") || strings.HasSuffix(sel.name, ".ps1") {
+							ext := filepath.Ext(sel.path)
+							m.vp.SetContent(highlightScript(readScript(sel.path, m.cache), ext))
+						} else {
+							m.vp.SetContent("Select a script to preview...")
+						}
+					}
+				} else {
+					m.vp.SetContent("A cross-platform script browser powered by RocketPowerInc.")
+				}
+			} else {
+				// Go back to parent directory if possible
+				if m.activeTab == 0 && m.focus == focusList && m.currentPath != "" && len(m.parentPaths) > 0 {
+					parent := m.parentPaths[len(m.parentPaths)-1]
+					m.parentPaths = m.parentPaths[:len(m.parentPaths)-1]
+					m.scriptItems = getScriptItems(parent.path)
+					m.list.SetItems(m.scriptItems)
+					m.list.Select(parent.index) // Restore previous selection
+					m.currentPath = parent.path
+					// Show preview for selected item
+					if sel, ok := m.list.SelectedItem().(scriptItem); ok {
+						if strings.HasSuffix(sel.name, ".sh") || strings.HasSuffix(sel.name, ".ps1") {
+							ext := filepath.Ext(sel.path)
+							m.vp.SetContent(highlightScript(readScript(sel.path, m.cache), ext))
+						} else {
+							m.vp.SetContent("Select a script to preview...")
+						}
 					} else {
 						m.vp.SetContent("Select a script to preview...")
 					}
-				} else {
-					m.vp.SetContent("Select a script to preview...")
+					return m, nil
 				}
-				return m, nil
 			}
 		case "right":
-			// Traverse into selected directory if possible
+			// Check if we can navigate into directory or should switch tabs
+			canNavigateDir := false
 			if m.activeTab == 0 && m.focus == focusList {
+				if sel, ok := m.list.SelectedItem().(scriptItem); ok && strings.HasSuffix(sel.name, "/") {
+					canNavigateDir = true
+				}
+			}
+			
+			if canNavigateDir {
+				// Traverse into selected directory
 				if sel, ok := m.list.SelectedItem().(scriptItem); ok {
 					if strings.HasSuffix(sel.name, "/") {
 						m.parentPaths = append(m.parentPaths, parentNav{path: m.currentPath, index: m.list.Index()})
@@ -445,6 +496,22 @@ end tell`, scriptCmd)
 						return m, nil
 					}
 				}
+			} else {
+				// Navigate to next tab
+				m.activeTab = (m.activeTab + 1) % len(m.tabs)
+				if m.activeTab == 0 {
+					m.list.SetItems(m.scriptItems)
+					if sel, ok := m.list.SelectedItem().(scriptItem); ok {
+						if strings.HasSuffix(sel.name, ".sh") || strings.HasSuffix(sel.name, ".ps1") {
+							ext := filepath.Ext(sel.path)
+							m.vp.SetContent(highlightScript(readScript(sel.path, m.cache), ext))
+						} else {
+							m.vp.SetContent("Select a script to preview...")
+						}
+					}
+				} else {
+					m.vp.SetContent("A cross-platform script browser powered by RocketPowerInc.")
+				}
 			}
 		case "enter":
 			if m.activeTab == 0 && m.focus == focusList {
@@ -460,7 +527,7 @@ end tell`, scriptCmd)
 				}
 			}
 		case "up":
-			if m.focus == focusList {
+			if m.focus == focusList && m.activeTab == 0 {
 				prevIndex := m.list.Index()
 				m.list, cmd = m.list.Update(msg)
 				newIndex := m.list.Index()
@@ -474,12 +541,12 @@ end tell`, scriptCmd)
 						}
 					}
 				}
-			} else if m.focus == focusPreview {
+			} else if m.focus == focusPreview && m.activeTab == 0 {
 				m.vp.LineUp(1)
 			}
 			return m, cmd
 		case "down":
-			if m.focus == focusList {
+			if m.focus == focusList && m.activeTab == 0 {
 				prevIndex := m.list.Index()
 				m.list, cmd = m.list.Update(msg)
 				newIndex := m.list.Index()
@@ -493,8 +560,22 @@ end tell`, scriptCmd)
 						}
 					}
 				}
-			} else if m.focus == focusPreview {
+			} else if m.focus == focusPreview && m.activeTab == 0 {
 				m.vp.LineDown(1)
+			}
+			return m, cmd
+		case "page_up":
+			if m.focus == focusPreview && m.activeTab == 0 {
+				for i := 0; i < 10; i++ {
+					m.vp.LineUp(1)
+				}
+			}
+			return m, cmd
+		case "page_down":
+			if m.focus == focusPreview && m.activeTab == 0 {
+				for i := 0; i < 10; i++ {
+					m.vp.LineDown(1)
+				}
 			}
 			return m, cmd
 		case "q", "ctrl+c":
@@ -552,9 +633,22 @@ func (m model) View() string {
 		rightContent := m.vp.View()
 
 		// Create panels with explicit dimensions - simple and stable
+		// Add visual feedback for focused pane
+		leftBorderColor := pink
+		rightBorderColor := pink
+		if m.activeTab == 0 {
+			if m.focus == focusList {
+				leftBorderColor = purple // Highlight focused pane
+				rightBorderColor = lipgloss.Color("244") // Dim unfocused pane
+			} else {
+				leftBorderColor = lipgloss.Color("244") // Dim unfocused pane
+				rightBorderColor = purple // Highlight focused pane
+			}
+		}
+
 		leftPanel := lipgloss.NewStyle().
 			Border(lipgloss.NormalBorder()).
-			BorderForeground(pink).
+			BorderForeground(leftBorderColor).
 			Width(leftPanelWidth).
 			Height(panelHeight).
 			Padding(1, 2).
@@ -562,7 +656,7 @@ func (m model) View() string {
 
 		rightPanel := lipgloss.NewStyle().
 			Border(lipgloss.NormalBorder()).
-			BorderForeground(pink).
+			BorderForeground(rightBorderColor).
 			Width(rightPanelWidth).
 			Height(panelHeight).
 			Padding(1, 2).
@@ -584,7 +678,7 @@ func (m model) View() string {
 		)
 	}
 
-	footer := lipgloss.NewStyle().Foreground(pink).MarginTop(1).Align(lipgloss.Center).Render("← → or 🖱️ Click Tabs • ↑↓ Select • Enter Preview • r Run Script • q Quit")
+	footer := lipgloss.NewStyle().Foreground(pink).MarginTop(1).Align(lipgloss.Center).Render("Tab/Shift+Tab Switch Tabs • ← → Navigate/Switch Tabs • ↑↓ Select/Scroll • Ctrl+Tab Switch Panes • Enter Preview • r Run Script • q Quit")
 
 	if m.activeTab == 0 {
 		return lipgloss.JoinVertical(lipgloss.Left,
@@ -682,6 +776,7 @@ func main() {
 		tabs:        tabs,
 		scriptItems: scriptItems,
 		activeTab:   0,
+		focus:       focusList, // Initialize focus to the list pane
 		currentPath: scriptbinPath,
 		parentPaths: []parentNav{},
 		cache:       cache,
