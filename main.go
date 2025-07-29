@@ -523,14 +523,13 @@ func (m model) View() string {
 	var body string
 	if m.activeTab == 0 {
 		// ABSOLUTE STATIC LAYOUT - exact pixel dimensions, never change
-		// Ensure we leave room for borders by subtracting border widths
-		borderWidth := 2 // Each border is 1 char on each side
-		leftPanelWidth := (m.width / 3) - borderWidth
-		rightPanelWidth := ((m.width * 2) / 3) - borderWidth
+		// Calculate exact 1/3 and 2/3 split with identical heights
+		leftPanelWidth := m.width / 3
+		rightPanelWidth := m.width - leftPanelWidth // Ensures no rounding issues
 		panelHeight := m.height - 10
 
 		// Truncate breadcrumb to prevent it from affecting panel size
-		maxBreadcrumbWidth := leftPanelWidth - 4 // Account for padding
+		maxBreadcrumbWidth := leftPanelWidth - 8 // Account for border + padding
 		if maxBreadcrumbWidth < 10 {
 			maxBreadcrumbWidth = 10
 		}
@@ -564,9 +563,10 @@ func (m model) View() string {
 			Padding(1, 2).
 			Render(rightContent)
 
-		// FORCE ABSOLUTE DIMENSIONS - content cannot override these
-		leftForced := lipgloss.Place(leftPanelWidth+4, panelHeight+4, lipgloss.Left, lipgloss.Top, leftPanel)
-		rightForced := lipgloss.Place(rightPanelWidth+4, panelHeight+4, lipgloss.Left, lipgloss.Top, rightPanel)
+		// FORCE ABSOLUTE DIMENSIONS - ensuring both panels are EXACTLY the same height
+		// and that the right border is preserved
+		leftForced := lipgloss.Place(leftPanelWidth, panelHeight, lipgloss.Left, lipgloss.Top, leftPanel)
+		rightForced := lipgloss.Place(rightPanelWidth, panelHeight, lipgloss.Left, lipgloss.Top, rightPanel)
 
 		// Use direct Join to combine the forced panels
 		body = lipgloss.JoinHorizontal(lipgloss.Top, leftForced, rightForced)
