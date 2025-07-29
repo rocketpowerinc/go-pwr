@@ -321,24 +321,24 @@ func readScript(path string, cache *scriptCache) string {
 }
 
 func (m *model) setSizes() {
-	// ABSOLUTE STRICT LAYOUT: Left = 1/3, Right = 2/3, NEVER CHANGES
-	leftWidth := m.width / 3
-	rightWidth := (m.width * 2) / 3
+	// STRICT LAYOUT with proper border accounting
+	borderWidth := 4 // 2 chars left + 2 chars right for each border
+	totalBorderWidth := borderWidth * 2 // Two panels, each with borders
+	availableWidth := m.width - totalBorderWidth
 	
-	// Content areas need to account for border + padding (4 chars total)
-	listContentWidth := leftWidth - 4
-	vpContentWidth := rightWidth - 4
+	leftContentWidth := availableWidth / 3
+	rightContentWidth := (availableWidth * 2) / 3
 	
-	// Ensure we don't go negative (minimum safety)
-	if listContentWidth < 1 {
-		listContentWidth = 1
+	// Ensure minimum sizes to prevent crashes
+	if leftContentWidth < 1 {
+		leftContentWidth = 1
 	}
-	if vpContentWidth < 1 {
-		vpContentWidth = 1
+	if rightContentWidth < 1 {
+		rightContentWidth = 1
 	}
 	
-	m.list.SetSize(listContentWidth, m.height-10)
-	m.vp.Width = vpContentWidth
+	m.list.SetSize(leftContentWidth, m.height-10)
+	m.vp.Width = rightContentWidth
 	m.vp.Height = m.height - 10
 }
 
@@ -594,17 +594,25 @@ func (m model) View() string {
 
 	var body string
 	if m.activeTab == 0 {
-		// ABSOLUTE STRICT LAYOUT: Left = 1/3, Right = 2/3, NEVER CHANGES
-		leftWidth := m.width / 3
-		rightWidth := (m.width * 2) / 3
+		// STRICT LAYOUT with proper border accounting
+		// Each border adds 2 chars on each side (4 total per panel)
+		borderWidth := 4 // 2 chars left + 2 chars right for each border
+		
+		// Calculate panel widths accounting for borders
+		totalBorderWidth := borderWidth * 2 // Two panels, each with borders
+		availableWidth := m.width - totalBorderWidth
+		
+		leftContentWidth := availableWidth / 3
+		rightContentWidth := (availableWidth * 2) / 3
+		
 		panelHeight := m.height - 10
 
-		// Simple borders with exact widths - no calculations, no adjustments
+		// Create panels with content width (borders add to this)
 		leftPanel := lipgloss.NewStyle().
 			Border(lipgloss.NormalBorder()).
 			BorderForeground(pink).
 			Padding(1, 2).
-			Width(leftWidth).
+			Width(leftContentWidth).
 			Height(panelHeight).
 			Render(breadcrumb + "\n" + m.list.View())
 
@@ -612,9 +620,9 @@ func (m model) View() string {
 			Border(lipgloss.NormalBorder()).
 			BorderForeground(pink).
 			Padding(1, 2).
-			Width(rightWidth).
+			Width(rightContentWidth).
 			Height(panelHeight).
-			Render(m.vp.View())
+			Render(sanitizeContent(m.vp.View()))
 
 		body = lipgloss.JoinHorizontal(lipgloss.Top, leftPanel, rightPanel)
 	} else {
@@ -688,6 +696,29 @@ func isScriptFile(filename string) bool {
 	return ext == ".sh" || ext == ".ps1" || ext == ".bat" || ext == ".cmd"
 }
 
+// sanitizeContent ensures content doesn't break border rendering
+func sanitizeContent(content string) string {
+	// Remove any potential border-breaking characters
+	content = strings.ReplaceAll(content, "\x00", "")     // Null bytes
+	content = strings.ReplaceAll(content, "\x1b[", "ESC[") // Convert ANSI escapes to visible text
+	content = strings.ReplaceAll(content, "\r", "")       // Remove carriage returns
+	
+	// Ensure content doesn't exceed reasonable line lengths
+	lines := strings.Split(content, "\n")
+	for i, line := range lines {
+		if len(line) > 1000 { // Prevent extremely long lines
+			lines[i] = line[:1000] + "..."
+		}
+	}
+	
+	return strings.Join(lines, "\n")
+}
+
+// Helper to set viewport content with sanitization
+func (m *model) setViewportContent(content string) {
+	m.vp.SetContent(sanitizeContent(content))
+}
+
 func main() {
 	if err := ensureRepo(); err != nil {
 		fmt.Println("Error cloning repo:", err)
@@ -718,7 +749,7 @@ func main() {
 		if s, ok := scriptItems[0].(scriptItem); ok {
 			if isScriptFile(s.name) {
 				ext := filepath.Ext(s.path)
-				vp.SetContent(highlightScript(readScript(s.path, cache), ext))
+				vp.SetContent(sanitizeContent(highlightScript(readScript(s.path, cache), ext)))
 			}
 		}
 	}

@@ -7,7 +7,10 @@
 
 # Bugs to fix
 
--
+- ~~Border overflow: Right panel extending beyond terminal width~~
+- ~~Height mismatch: Panels having different heights~~
+- ~~Content breaking borders: Scripts with special characters breaking border rendering~~
+- ~~Width calculation: Total width exceeding terminal width~~
 
 # Test
 
