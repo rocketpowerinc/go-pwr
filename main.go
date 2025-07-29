@@ -471,19 +471,6 @@ end tell`, scriptCmd)
 					}
 				}
 			}
-		case "enter":
-			if m.activeTab == 0 && m.focus == focusList {
-				if sel, ok := m.list.SelectedItem().(scriptItem); ok {
-					fmt.Println("Selected script:", sel.name, sel.path) // Debug print
-					if !strings.HasSuffix(sel.name, "/") {
-						// Preview the script file
-						return m, func() tea.Msg {
-							ext := filepath.Ext(sel.path)
-							return outputMsg(highlightScript(readScript(sel.path, m.cache), ext))
-						}
-					}
-				}
-			}
 		case "up":
 			if m.focus == focusList && m.activeTab == 0 {
 				prevIndex := m.list.Index()
@@ -636,7 +623,7 @@ func (m model) View() string {
 		)
 	}
 
-	footer := lipgloss.NewStyle().Foreground(pink).MarginTop(1).Align(lipgloss.Center).Render("Tab/Shift+Tab Switch Tabs • ← → Navigate Dirs • ↑↓ Select/Scroll • Ctrl+← Ctrl+→ Switch Panes • Enter Preview • r Run Script • q Quit")
+	footer := lipgloss.NewStyle().Foreground(pink).MarginTop(1).Align(lipgloss.Center).Render("Tab/Shift+Tab Switch Tabs • ← → Navigate Dirs • ↑↓ Select/Scroll • Ctrl+← Ctrl+→ Switch Panes • r Run Script • q Quit")
 
 	if m.activeTab == 0 {
 		return lipgloss.JoinVertical(lipgloss.Left,
