@@ -1,21 +1,17 @@
 # Features
+- Make it so anyone can easily change the repo it clones to explore
 
-- Anyone can easily change the repo it will explore
-- Have the script run in the preview pane and not open another terminal (Might not work with gum choose)
-- When hovering over tabs with mouse or cursor add some highlighting
-- Keyboard works good on Windows,Linux but Mac I have to use Iterm2 terminal emulator
 
 # FYI
-
+- Can't have the script run in the preview pane because gum menus wouldn't work
 - Syntax Highling in preview pane broke boarders
 
 # Bugs to fix
 
--
+- Keyboard works good on Windows,Linux but Mac I have to use Iterm2 terminal emulator
 
 # Test
 
-- Test App on Mac
 - Test App on a Ubuntu Server
 
 # Build
