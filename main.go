@@ -523,67 +523,58 @@ func (m model) View() string {
 
 	var body string
 	if m.activeTab == 0 {
-		// ABSOLUTE STATIC LAYOUT - exact pixel dimensions, never change
-		// Calculate exact dimensions ensuring borders are preserved
-		totalWidth := m.width
-		panelHeight := m.height - 10
+		// MANUAL PIXEL-PERFECT LAYOUT - Ultimate control approach
+		containerWidth := m.width
+		containerHeight := m.height - 10
 		
-		// Split width exactly in thirds, ensuring total doesn't exceed terminal width
-		leftPanelWidth := totalWidth / 3
-		rightPanelWidth := totalWidth - leftPanelWidth
+		// Calculate exact dimensions
+		leftWidth := containerWidth / 3
+		rightWidth := containerWidth - leftWidth
 		
-		// Account for borders and padding in content areas
-		leftContentWidth := leftPanelWidth - 6  // 2 border + 4 padding
-		rightContentWidth := rightPanelWidth - 6 // 2 border + 4 padding
-		
-		if leftContentWidth < 5 {
-			leftContentWidth = 5
-		}
-		if rightContentWidth < 5 {
-			rightContentWidth = 5
-		}
-
-		// Truncate breadcrumb to prevent it from affecting panel size
-		maxBreadcrumbWidth := leftContentWidth - 2
-		if maxBreadcrumbWidth < 10 {
-			maxBreadcrumbWidth = 10
+		// Create content with proper truncation
+		maxBreadcrumbWidth := leftWidth - 10
+		if maxBreadcrumbWidth < 5 {
+			maxBreadcrumbWidth = 5
 		}
 		
 		truncatedPath := m.currentPath
 		if len(truncatedPath) > maxBreadcrumbWidth {
-			// Truncate from the beginning, keeping the end
 			truncatedPath = "..." + truncatedPath[len(truncatedPath)-maxBreadcrumbWidth+3:]
 		}
 		
-		// Enforce maximum width to guarantee no overflow
-		breadcrumb := lipgloss.NewStyle().
-			Faint(true).
-			Width(maxBreadcrumbWidth).
-			Render(truncatedPath)
-
-		// Content with controlled breadcrumb that cannot affect panel sizing
+		breadcrumb := lipgloss.NewStyle().Faint(true).Render(truncatedPath)
 		leftContent := breadcrumb + "\n" + m.list.View()
 		rightContent := m.vp.View()
 
-		// Create panels with EXACT enforced dimensions - no Place() needed
+		// Create basic panels with borders
 		leftPanel := lipgloss.NewStyle().
 			Border(lipgloss.NormalBorder()).
 			BorderForeground(pink).
-			Width(leftPanelWidth).
-			Height(panelHeight).
 			Padding(1, 2).
 			Render(leftContent)
 
 		rightPanel := lipgloss.NewStyle().
 			Border(lipgloss.NormalBorder()).
 			BorderForeground(pink).
-			Width(rightPanelWidth).
-			Height(panelHeight).
 			Padding(1, 2).
 			Render(rightContent)
 
-		// Join panels directly - no Place() to avoid cutting borders
-		body = lipgloss.JoinHorizontal(lipgloss.Top, leftPanel, rightPanel)
+		// Force EXACT dimensions using Place with precise measurements
+		// This ensures both panels are exactly the same height and preserve borders
+		leftForced := lipgloss.Place(
+			leftWidth, containerHeight,
+			lipgloss.Left, lipgloss.Top,
+			leftPanel,
+		)
+		
+		rightForced := lipgloss.Place(
+			rightWidth, containerHeight,
+			lipgloss.Left, lipgloss.Top,
+			rightPanel,
+		)
+
+		// Simple horizontal join - both containers are now identical height
+		body = lipgloss.JoinHorizontal(lipgloss.Top, leftForced, rightForced)
 	} else {
 		grey := lipgloss.Color("244")
 		aboutStyle := lipgloss.NewStyle().
