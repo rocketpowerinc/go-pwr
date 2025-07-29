@@ -2,7 +2,6 @@
 
 - Anyone can easily change the repo it will explore
 - Have the script run in the preview pane and not open another terminal (Might not work with gum choose)
-- Scroll preview without mouse
 - When hovering over tabs with mouse or cursor add some highlighting
 
 # FYI
