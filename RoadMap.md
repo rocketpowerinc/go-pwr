@@ -1,25 +1,27 @@
 # Features
+
 - Anyone can easily change the repo it will explore
 - Have the script run in the preview pane and not open another terminal
 - Scroll preview without mouse
 - When hovering over tabs with mouse or cursor add some highlighting
 
 # Bugs to fix
-- ~~Can't see right boarder of preview window, even in full screen~~
-- ~~Fixed ps1 scripts not opening on linux~~
-- ~~some scripts are all broken but only in windows?? (I think its because the window sizes change size for some reason even on mac and linux but they don't break)~~
-- ~~Fixed: Left and right windows changing size dynamically, causing border shifts and breaks~~
+
+-
 
 # Test
+
 - Test App on Mac
 - Test App on a Ubuntu Server
 
 # Build
+
 - Tag Templet in Scriptbin repo for bash and pwsh
   - works on Server/Desktop or both
   - works on Windows/Mac/Linux or all
 
 # Script Bin Structure
+
 - Bash
   - Mac/Linux
   - Mac
@@ -33,6 +35,7 @@
   - Linux
 
 # AI Continuous Help
+
 - Ask it to optimise
 - Ask it to look for vulnerabilty
 - Ask it for error checking and dubugging
