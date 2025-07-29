@@ -11,15 +11,7 @@
 
 # Bugs to fix
 
-- ~~Border overflow: Right panel extending beyond terminal width~~
-- ~~Height mismatch: Panels having different heights~~
-- ~~Content breaking borders: Scripts with special characters breaking border rendering~~
-- ~~Width calculation: Total width exceeding terminal width~~
-- ~~Right pane changing size dynamically - FIXED with static Width/Height styles~~
-- ~~Breadcrumb affecting left panel size - FIXED with truncation~~
-- ~~Shell script (.sh) content breaking borders - FIXED by removing syntax highlighting~~
-- ~~Preview content corruption - FIXED by removing syntax highlighting~~
-- Minor height difference between panels - ACCEPTABLE (user can live with it)
+-
 
 # Test
 
