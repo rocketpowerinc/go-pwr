@@ -72,7 +72,7 @@ alias goo='
   rm -f ~/go/bin/go-pwr && \
   git clone https://github.com/rocketpowerinc/go-pwr.git && \
   cd go-pwr && \
-  go install
+  go install && \
   ~/go/bin/go-pwr'
 EOF
 ```

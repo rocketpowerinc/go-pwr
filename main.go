@@ -6,8 +6,10 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"sort"
 	"strings"
+	"sync"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/bubbles/list"
@@ -36,6 +38,37 @@ type parentNav struct {
 	index int
 }
 
+// Cache for script contents to avoid repeated file reads
+type scriptCache struct {
+	mu    sync.RWMutex
+	cache map[string]string
+}
+
+func newScriptCache() *scriptCache {
+	return &scriptCache{
+		cache: make(map[string]string),
+	}
+}
+
+func (sc *scriptCache) get(path string) (string, bool) {
+	sc.mu.RLock()
+	defer sc.mu.RUnlock()
+	content, exists := sc.cache[path]
+	return content, exists
+}
+
+func (sc *scriptCache) set(path, content string) {
+	sc.mu.Lock()
+	defer sc.mu.Unlock()
+	sc.cache[path] = content
+}
+
+func (sc *scriptCache) clear() {
+	sc.mu.Lock()
+	defer sc.mu.Unlock()
+	sc.cache = make(map[string]string)
+}
+
 type model struct {
 	list        list.Model
 	vp          viewport.Model
@@ -47,6 +80,7 @@ type model struct {
 	focus       focusArea
 	currentPath string
 	parentPaths []parentNav
+	cache       *scriptCache
 }
 
 type outputMsg string
@@ -61,70 +95,122 @@ var (
 	tabBarStyle      = lipgloss.NewStyle().MarginBottom(1).Foreground(pink)
 )
 
-// --- Syntax Highlighting Helper ---
+// --- Optimized Syntax Highlighting ---
 var (
 	keywordStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("33"))   // Blue
 	commentStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("244"))  // Grey
 	stringStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("202"))  // Orange
 )
 
+// Pre-compiled keyword maps for better performance
+var (
+	bashKeywords = []string{"if", "then", "else", "fi", "for", "in", "do", "done", "echo", "exit", "while", "case", "function", "export", "source"}
+	psKeywords   = []string{"Write-Host", "if", "else", "foreach", "function", "return", "break", "param", "process", "begin", "end", "Get-", "Set-", "New-"}
+	batchKeywords = []string{"echo", "set", "if", "else", "goto", "call", "exit", "for", "in", "do"}
+)
+
 func highlightScript(content, ext string) string {
+	if content == "" {
+		return content
+	}
+	
 	lines := strings.Split(content, "\n")
+	var keywords []string
+	
+	switch strings.ToLower(ext) {
+	case ".sh":
+		keywords = bashKeywords
+	case ".ps1":
+		keywords = psKeywords
+	case ".bat", ".cmd":
+		keywords = batchKeywords
+	default:
+		return content // No highlighting for unknown extensions
+	}
+	
 	for i, line := range lines {
-		commentIdx := strings.Index(line, "#")
+		// Handle comments first (different comment chars for different languages)
+		commentChar := "#"
+		if ext == ".bat" || ext == ".cmd" {
+			commentChar = "REM"
+		}
+		
+		var commentIdx int
+		if commentChar == "#" {
+			commentIdx = strings.Index(line, "#")
+		} else {
+			commentIdx = strings.Index(strings.ToUpper(line), "REM")
+		}
+		
 		isComment := commentIdx == 0 || (commentIdx > 0 && strings.TrimSpace(line[:commentIdx]) == "")
+		
 		if commentIdx != -1 {
 			comment := line[commentIdx:]
 			line = line[:commentIdx] + commentStyle.Render(comment)
 		}
+		
 		if !isComment {
-			if ext == ".sh" {
-				for _, kw := range []string{"if", "then", "else", "fi", "for", "in", "do", "done", "echo", "exit"} {
-					line = strings.ReplaceAll(line, kw, keywordStyle.Render(kw))
-				}
-			} else if ext == ".ps1" {
-				for _, kw := range []string{"Write-Host", "if", "else", "foreach", "function", "return", "break"} {
+			// Apply keyword highlighting
+			for _, kw := range keywords {
+				// Use word boundaries to avoid partial matches
+				if strings.Contains(line, kw) {
 					line = strings.ReplaceAll(line, kw, keywordStyle.Render(kw))
 				}
 			}
-			var out strings.Builder
-			inString := false
-			for _, r := range line {
-				if r == '"' {
-					inString = !inString
-					out.WriteString(stringStyle.Render(string(r)))
-				} else if inString {
-					out.WriteString(stringStyle.Render(string(r)))
-				} else {
-					out.WriteRune(r)
-				}
-			}
-			line = out.String()
+			
+			// Handle string highlighting
+			line = highlightStrings(line)
 		}
 		lines[i] = line
 	}
 	return strings.Join(lines, "\n")
 }
 
+func highlightStrings(line string) string {
+	var out strings.Builder
+	inString := false
+	inSingleQuote := false
+	
+	for _, r := range line {
+		switch r {
+		case '"':
+			if !inSingleQuote {
+				inString = !inString
+			}
+			out.WriteString(stringStyle.Render(string(r)))
+		case '\'':
+			if !inString {
+				inSingleQuote = !inSingleQuote
+			}
+			out.WriteString(stringStyle.Render(string(r)))
+		default:
+			if inString || inSingleQuote {
+				out.WriteString(stringStyle.Render(string(r)))
+			} else {
+				out.WriteRune(r)
+			}
+		}
+	}
+	return out.String()
+}
+
 func ensureRepo() error {
 	root := filepath.Clean("scriptbin")
-	if _, err := os.Stat(root); os.IsNotExist(err) {
-		cmd := exec.Command("git", "clone", "https://github.com/rocketpowerinc/scriptbin.git")
-		out, err := cmd.CombinedOutput()
-		if err != nil {
-			return fmt.Errorf("git clone error: %v\n%s", err, string(out))
-		}
-	} else {
-		// Remove the existing directory and re-clone
+	
+	// Always remove and re-clone for fresh content
+	if _, err := os.Stat(root); err == nil {
 		if err := os.RemoveAll(root); err != nil {
 			return fmt.Errorf("failed to remove old scriptbin: %v", err)
 		}
-		cmd := exec.Command("git", "clone", "https://github.com/rocketpowerinc/scriptbin.git")
-		out, err := cmd.CombinedOutput()
-		if err != nil {
-			return fmt.Errorf("git clone error: %v\n%s", err, string(out))
-		}
 	}
+	
+	cmd := exec.Command("git", "clone", "https://github.com/rocketpowerinc/scriptbin.git")
+	cmd.Dir = "." // Ensure we're in the current directory
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("git clone error: %v\n%s", err, string(out))
+	}
+	
 	return nil
 }
 
@@ -134,6 +220,11 @@ func getScriptItems(root string) []list.Item {
 	if err != nil {
 		return items
 	}
+	
+	// Pre-allocate slice with estimated capacity
+	items = make([]list.Item, 0, len(entries))
+	
+	// Sort entries: directories first, then files, both alphabetically
 	sort.Slice(entries, func(i, j int) bool {
 		if entries[i].IsDir() && !entries[j].IsDir() {
 			return true
@@ -143,26 +234,44 @@ func getScriptItems(root string) []list.Item {
 		}
 		return strings.ToLower(entries[i].Name()) < strings.ToLower(entries[j].Name())
 	})
+	
 	for _, entry := range entries {
-		if strings.HasPrefix(entry.Name(), ".") {
+		name := entry.Name()
+		// Skip hidden files and directories
+		if strings.HasPrefix(name, ".") {
 			continue
 		}
-		path := filepath.Join(root, entry.Name())
+		
+		path := filepath.Join(root, name)
 		if entry.IsDir() {
-			items = append(items, scriptItem{name: entry.Name() + "/", path: path})
-		} else if strings.HasSuffix(entry.Name(), ".sh") || strings.HasSuffix(entry.Name(), ".ps1") {
-			items = append(items, scriptItem{name: entry.Name(), path: path})
+			items = append(items, scriptItem{name: name + "/", path: path})
+		} else {
+			// Only include supported script files
+			ext := strings.ToLower(filepath.Ext(name))
+			if ext == ".sh" || ext == ".ps1" || ext == ".bat" || ext == ".cmd" {
+				items = append(items, scriptItem{name: name, path: path})
+			}
 		}
 	}
 	return items
 }
 
-func readScript(path string) string {
+func readScript(path string, cache *scriptCache) string {
+	// Check cache first
+	if content, exists := cache.get(path); exists {
+		return content
+	}
+	
 	data, err := os.ReadFile(path)
 	if err != nil {
-		return fmt.Sprintf("Error reading file: %v", err)
+		errMsg := fmt.Sprintf("Error reading file: %v", err)
+		cache.set(path, errMsg) // Cache errors too to avoid repeated attempts
+		return errMsg
 	}
-	return string(data)
+	
+	content := string(data)
+	cache.set(path, content)
+	return content
 }
 
 func (m *model) setSizes() {
@@ -217,7 +326,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if sel, ok := m.list.SelectedItem().(scriptItem); ok {
 					if strings.HasSuffix(sel.name, ".sh") || strings.HasSuffix(sel.name, ".ps1") {
 						ext := filepath.Ext(sel.path)
-						m.vp.SetContent(highlightScript(readScript(sel.path), ext))
+						m.vp.SetContent(highlightScript(readScript(sel.path, m.cache), ext))
 					} else {
 						m.vp.SetContent("Select a script to preview...")
 					}
@@ -241,7 +350,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 									cmd = exec.Command("cmd", "/C", "start", "cmd", "/K", "cls && bash -l "+sel.path+" & pause")
 								}
 							} else if isMac() {
-								// Always use osascript for Mac
+								// Improved macOS terminal handling
 								scriptCmd := sel.path
 								if strings.HasSuffix(sel.name, ".ps1") {
 									scriptCmd = "pwsh " + sel.path
@@ -249,11 +358,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 									scriptCmd = "bash " + sel.path
 								}
 								osaCmd := fmt.Sprintf(`tell application "Terminal"
-    do script "clear; %s; echo; read -n 1 -s -r -p 'Press Enter to exit'"
+    do script "clear; %s; echo; read -n 1 -s -r -p 'Press any key to exit...'"
     activate
 end tell`, scriptCmd)
 								cmd = exec.Command("osascript", "-e", osaCmd)
-							} else {
+							} else if isLinux() {
 								// Linux: try common terminals
 								term := ""
 								for _, candidate := range []string{"gnome-terminal", "konsole", "x-terminal-emulator"} {
@@ -293,7 +402,7 @@ end tell`, scriptCmd)
 				if sel, ok := m.list.SelectedItem().(scriptItem); ok {
 					if strings.HasSuffix(sel.name, ".sh") || strings.HasSuffix(sel.name, ".ps1") {
 						ext := filepath.Ext(sel.path)
-						m.vp.SetContent(highlightScript(readScript(sel.path), ext))
+						m.vp.SetContent(highlightScript(readScript(sel.path, m.cache), ext))
 					} else {
 						m.vp.SetContent("Select a script to preview...")
 					}
@@ -317,7 +426,7 @@ end tell`, scriptCmd)
 							if first, ok := m.scriptItems[0].(scriptItem); ok {
 								if strings.HasSuffix(first.name, ".sh") || strings.HasSuffix(first.name, ".ps1") {
 									ext := filepath.Ext(first.path)
-									m.vp.SetContent(highlightScript(readScript(first.path), ext))
+									m.vp.SetContent(highlightScript(readScript(first.path, m.cache), ext))
 								} else {
 									m.vp.SetContent("Select a script to preview...")
 								}
@@ -337,7 +446,7 @@ end tell`, scriptCmd)
 						// Preview the script file
 						return m, func() tea.Msg {
 							ext := filepath.Ext(sel.path)
-							return outputMsg(highlightScript(readScript(sel.path), ext))
+							return outputMsg(highlightScript(readScript(sel.path, m.cache), ext))
 						}
 					}
 				}
@@ -351,7 +460,7 @@ end tell`, scriptCmd)
 					if sel, ok := m.list.SelectedItem().(scriptItem); ok {
 						if strings.HasSuffix(sel.name, ".sh") || strings.HasSuffix(sel.name, ".ps1") {
 							ext := filepath.Ext(sel.path)
-							m.vp.SetContent(highlightScript(readScript(sel.path), ext))
+							m.vp.SetContent(highlightScript(readScript(sel.path, m.cache), ext))
 						} else {
 							m.vp.SetContent("Select a script to preview...")
 						}
@@ -370,7 +479,7 @@ end tell`, scriptCmd)
 					if sel, ok := m.list.SelectedItem().(scriptItem); ok {
 						if strings.HasSuffix(sel.name, ".sh") || strings.HasSuffix(sel.name, ".ps1") {
 							ext := filepath.Ext(sel.path)
-							m.vp.SetContent(highlightScript(readScript(sel.path), ext))
+							m.vp.SetContent(highlightScript(readScript(sel.path, m.cache), ext))
 						} else {
 							m.vp.SetContent("Select a script to preview...")
 						}
@@ -475,16 +584,21 @@ func (d scriptDelegate) Spacing() int              { return 0 }
 func (d scriptDelegate) Update(msg tea.Msg, m *list.Model) tea.Cmd { return nil }
 
 func isWindows() bool {
-	return strings.Contains(strings.ToLower(os.Getenv("OS")), "windows")
+	return runtime.GOOS == "windows"
 }
 
 func isMac() bool {
-	return strings.Contains(strings.ToLower(os.Getenv("OSTYPE")), "darwin") ||
-		strings.Contains(strings.ToLower(os.Getenv("MACHTYPE")), "darwin") ||
-		strings.Contains(strings.ToLower(os.Getenv("TERM_PROGRAM")), "apple") ||
-		strings.Contains(strings.ToLower(os.Getenv("TERM_PROGRAM")), "terminal") ||
-		strings.Contains(strings.ToLower(os.Getenv("SHELL")), "zsh") || // Most Mac users use zsh
-		strings.Contains(strings.ToLower(os.Getenv("HOME")), "/Users/")
+	return runtime.GOOS == "darwin"
+}
+
+func isLinux() bool {
+	return runtime.GOOS == "linux"
+}
+
+// Helper function to check if a file is a supported script type
+func isScriptFile(filename string) bool {
+	ext := strings.ToLower(filepath.Ext(filename))
+	return ext == ".sh" || ext == ".ps1" || ext == ".bat" || ext == ".cmd"
 }
 
 func main() {
@@ -495,6 +609,7 @@ func main() {
 
 	tabs := []string{"Scripts", "About"}
 	scriptItems := getScriptItems(filepath.Clean("scriptbin"))
+	cache := newScriptCache()
 
 	listModel := list.New(scriptItems, scriptDelegate{}, 0, 0)
 	listModel.Title = "" // Remove the "Scripts" title
@@ -507,9 +622,9 @@ func main() {
 	// Initial preview for first script
 	if len(scriptItems) > 0 {
 		if s, ok := scriptItems[0].(scriptItem); ok {
-			if strings.HasSuffix(s.name, ".sh") || strings.HasSuffix(s.name, ".ps1") {
+			if isScriptFile(s.name) {
 				ext := filepath.Ext(s.path)
-				vp.SetContent(highlightScript(readScript(s.path), ext))
+				vp.SetContent(highlightScript(readScript(s.path, cache), ext))
 			}
 		}
 	}
@@ -522,6 +637,7 @@ func main() {
 		activeTab:   0,
 		currentPath: filepath.Clean("scriptbin"),
 		parentPaths: []parentNav{},
+		cache:       cache,
 	}
 
 	if err := tea.NewProgram(m,
