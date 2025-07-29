@@ -321,15 +321,15 @@ func readScript(path string, cache *scriptCache) string {
 }
 
 func (m *model) setSizes() {
-	// STRICT LAYOUT with proper border accounting
-	borderWidth := 4 // 2 chars left + 2 chars right for each border
-	totalBorderWidth := borderWidth * 2 // Two panels, each with borders
-	availableWidth := m.width - totalBorderWidth
+	// ABSOLUTE STATIC LAYOUT - exact same calculations as View()
+	leftPanelWidth := m.width / 3
+	rightPanelWidth := (m.width * 2) / 3
 	
-	leftContentWidth := availableWidth / 3
-	rightContentWidth := (availableWidth * 2) / 3
+	// Content area accounting for borders and padding (4 chars each side)
+	leftContentWidth := leftPanelWidth - 4
+	rightContentWidth := rightPanelWidth - 4
 	
-	// Ensure minimum sizes to prevent crashes
+	// Ensure positive values
 	if leftContentWidth < 1 {
 		leftContentWidth = 1
 	}
@@ -590,41 +590,53 @@ func (m model) View() string {
 	}
 	tabBar := tabBarStyle.Render(strings.Join(tabLabels, "  "))
 
-	breadcrumb := lipgloss.NewStyle().Faint(true).Render(m.currentPath)
-
 	var body string
 	if m.activeTab == 0 {
-		// STRICT LAYOUT with proper border accounting
-		// Each border adds 2 chars on each side (4 total per panel)
-		borderWidth := 4 // 2 chars left + 2 chars right for each border
-		
-		// Calculate panel widths accounting for borders
-		totalBorderWidth := borderWidth * 2 // Two panels, each with borders
-		availableWidth := m.width - totalBorderWidth
-		
-		leftContentWidth := availableWidth / 3
-		rightContentWidth := (availableWidth * 2) / 3
-		
+		// ABSOLUTE STATIC LAYOUT - exact pixel dimensions, never change
+		leftPanelWidth := m.width / 3
+		rightPanelWidth := (m.width * 2) / 3
 		panelHeight := m.height - 10
 
-		// Create panels with content width (borders add to this)
+		// Truncate breadcrumb to prevent it from affecting panel size
+		maxBreadcrumbWidth := leftPanelWidth - 8 // Account for border + padding
+		if maxBreadcrumbWidth < 10 {
+			maxBreadcrumbWidth = 10
+		}
+		
+		truncatedPath := m.currentPath
+		if len(truncatedPath) > maxBreadcrumbWidth {
+			// Truncate from the beginning, keeping the end
+			truncatedPath = "..." + truncatedPath[len(truncatedPath)-maxBreadcrumbWidth+3:]
+		}
+		
+		// Enforce maximum width to guarantee no overflow
+		breadcrumb := lipgloss.NewStyle().
+			Faint(true).
+			Width(maxBreadcrumbWidth).
+			Render(truncatedPath)
+
+		// Content with controlled breadcrumb that cannot affect panel sizing
+		leftContent := breadcrumb + "\n" + m.list.View()
+		rightContent := m.vp.View()
+
+		// Create panels with exact, enforced dimensions
 		leftPanel := lipgloss.NewStyle().
 			Border(lipgloss.NormalBorder()).
 			BorderForeground(pink).
 			Padding(1, 2).
-			Width(leftContentWidth).
-			Height(panelHeight).
-			Render(breadcrumb + "\n" + m.list.View())
+			Render(leftContent)
 
 		rightPanel := lipgloss.NewStyle().
 			Border(lipgloss.NormalBorder()).
 			BorderForeground(pink).
 			Padding(1, 2).
-			Width(rightContentWidth).
-			Height(panelHeight).
-			Render(m.vp.View())
+			Render(rightContent)
 
-		body = lipgloss.JoinHorizontal(lipgloss.Top, leftPanel, rightPanel)
+		// Force exact panel sizes using Place - this CANNOT be overridden by content
+		leftForced := lipgloss.Place(leftPanelWidth, panelHeight, lipgloss.Left, lipgloss.Top, leftPanel)
+		rightForced := lipgloss.Place(rightPanelWidth, panelHeight, lipgloss.Left, lipgloss.Top, rightPanel)
+
+		body = lipgloss.JoinHorizontal(lipgloss.Top, leftForced, rightForced)
 	} else {
 		grey := lipgloss.Color("244")
 		aboutStyle := lipgloss.NewStyle().

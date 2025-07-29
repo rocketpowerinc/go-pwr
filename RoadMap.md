@@ -11,6 +11,7 @@
 - ~~Height mismatch: Panels having different heights~~
 - ~~Content breaking borders: Scripts with special characters breaking border rendering~~
 - ~~Width calculation: Total width exceeding terminal width~~
+- ~~Right pane changing size dynamically - now enforced with lipgloss.Place~~
 
 # Test
 
