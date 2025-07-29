@@ -14,6 +14,9 @@
 - ~~Right pane changing size dynamically - now enforced with lipgloss.Place~~
 - ~~Breadcrumb affecting left panel size - now truncated and width-controlled~~
 - ~~Missing right border - fixed by proper width calculations~~
+- ~~Shell script (.sh) content breaking borders - FIXED by removing syntax highlighting~~
+- ~~Preview content corruption - FIXED by removing syntax highlighting~~
+- ~~Missing right border - fixed by proper width calculations~~
 - ~~Shell script (.sh) content breaking borders - added content sanitization~~
 
 # Test

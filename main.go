@@ -95,121 +95,30 @@ var (
 	tabBarStyle      = lipgloss.NewStyle().MarginBottom(1).Foreground(pink)
 )
 
-// --- Optimized Syntax Highlighting ---
-var (
-	keywordStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("33"))   // Blue
-	commentStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("244"))  // Grey
-	stringStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("202"))  // Orange
-)
-
-// Pre-compiled keyword maps for better performance
-var (
-	bashKeywords = []string{"if", "then", "else", "fi", "for", "in", "do", "done", "echo", "exit", "while", "case", "function", "export", "source"}
-	psKeywords   = []string{"Write-Host", "if", "else", "foreach", "function", "return", "break", "param", "process", "begin", "end", "Get-", "Set-", "New-"}
-	batchKeywords = []string{"echo", "set", "if", "else", "goto", "call", "exit", "for", "in", "do"}
-)
-
 func highlightScript(content, ext string) string {
 	if content == "" {
 		return content
 	}
 	
-	// Sanitize content first, especially important for shell scripts
-	content = sanitizeContentForBorders(content)
-	
-	lines := strings.Split(content, "\n")
-	var keywords []string
-	
-	switch strings.ToLower(ext) {
-	case ".sh":
-		keywords = bashKeywords
-	case ".ps1":
-		keywords = psKeywords
-	case ".bat", ".cmd":
-		keywords = batchKeywords
-	default:
-		return content // No highlighting for unknown extensions
-	}
-	
-	for i, line := range lines {
-		// Handle comments first (different comment chars for different languages)
-		commentChar := "#"
-		if ext == ".bat" || ext == ".cmd" {
-			commentChar = "REM"
-		}
-		
-		var commentIdx int
-		if commentChar == "#" {
-			commentIdx = strings.Index(line, "#")
-		} else {
-			commentIdx = strings.Index(strings.ToUpper(line), "REM")
-		}
-		
-		isComment := commentIdx == 0 || (commentIdx > 0 && strings.TrimSpace(line[:commentIdx]) == "")
-		
-		if commentIdx != -1 {
-			comment := line[commentIdx:]
-			line = line[:commentIdx] + commentStyle.Render(comment)
-		}
-		
-		if !isComment {
-			// Apply keyword highlighting
-			for _, kw := range keywords {
-				// Use word boundaries to avoid partial matches
-				if strings.Contains(line, kw) {
-					line = strings.ReplaceAll(line, kw, keywordStyle.Render(kw))
-				}
-			}
-			
-			// Handle string highlighting
-			line = highlightStrings(line)
-		}
-		lines[i] = line
-	}
-	return strings.Join(lines, "\n")
-}
-
-func highlightStrings(line string) string {
-	var out strings.Builder
-	inString := false
-	inSingleQuote := false
-	
-	for _, r := range line {
-		switch r {
-		case '"':
-			if !inSingleQuote {
-				inString = !inString
-			}
-			out.WriteString(stringStyle.Render(string(r)))
-		case '\'':
-			if !inString {
-				inSingleQuote = !inSingleQuote
-			}
-			out.WriteString(stringStyle.Render(string(r)))
-		default:
-			if inString || inSingleQuote {
-				out.WriteString(stringStyle.Render(string(r)))
-			} else {
-				out.WriteRune(r)
-			}
-		}
-	}
-	return out.String()
+	// No syntax highlighting - just return clean content
+	return sanitizeContentForBorders(content)
 }
 
 // sanitizeContentForBorders removes or escapes characters that can break border rendering
 // This is especially important for shell scripts which may contain special characters
 func sanitizeContentForBorders(content string) string {
-	// Replace problematic characters that can break terminal rendering
+	// Simple, reliable content cleaning
 	content = strings.ReplaceAll(content, "\r\n", "\n") // Normalize line endings
 	content = strings.ReplaceAll(content, "\r", "\n")   // Handle old Mac line endings
+	content = strings.ReplaceAll(content, "\x00", "")   // Remove null bytes
 	
-	// Remove or escape characters that might interfere with borders
+	// Remove any stray ANSI sequences that might interfere
 	lines := strings.Split(content, "\n")
 	for i, line := range lines {
-		// Ensure line doesn't end with escape sequences that might affect next line
-		line = strings.TrimRight(line, "\x1b[0m") // Remove trailing reset codes
-		lines[i] = line
+		// Simple line length limit to prevent layout issues
+		if len(line) > 200 { // Conservative limit
+			lines[i] = line[:200] + "..."
+		}
 	}
 	
 	return strings.Join(lines, "\n")
@@ -641,24 +550,6 @@ func (m model) View() string {
 		// Content with controlled breadcrumb that cannot affect panel sizing
 		leftContent := breadcrumb + "\n" + m.list.View()
 		rightContent := m.vp.View()
-		
-		// For shell scripts, apply additional content width control to prevent border breaking
-		// Check if we're viewing a shell script by checking current selection
-		if sel := m.list.SelectedItem(); sel != nil {
-			if item, ok := sel.(scriptItem); ok && strings.HasSuffix(item.name, ".sh") {
-				// This is a shell script, ensure content fits properly to prevent border issues
-				maxContentWidth := rightPanelWidth - 4 // Account for padding only, border handled above
-				lines := strings.Split(rightContent, "\n")
-				for i, line := range lines {
-					// Simple length check to prevent overflow
-					if len(line) > maxContentWidth {
-						// Truncate long lines to prevent border overflow
-						lines[i] = line[:maxContentWidth-3] + "..."
-					}
-				}
-				rightContent = strings.Join(lines, "\n")
-			}
-		}
 
 		// Create panels with exact, enforced dimensions and proper content constraints
 		leftPanel := lipgloss.NewStyle().
@@ -748,24 +639,6 @@ func isLinux() bool {
 func isScriptFile(filename string) bool {
 	ext := strings.ToLower(filepath.Ext(filename))
 	return ext == ".sh" || ext == ".ps1" || ext == ".bat" || ext == ".cmd"
-}
-
-// sanitizeContent ensures content doesn't break border rendering
-func sanitizeContent(content string) string {
-	// Only remove truly problematic characters that break borders
-	content = strings.ReplaceAll(content, "\x00", "")     // Null bytes only
-	content = strings.ReplaceAll(content, "\r", "")       // Remove carriage returns
-	
-	// Don't touch ANSI sequences - they're needed for syntax highlighting!
-	// Only limit extremely long lines to prevent layout issues
-	lines := strings.Split(content, "\n")
-	for i, line := range lines {
-		if len(line) > 2000 { // Very generous limit
-			lines[i] = line[:2000] + "..."
-		}
-	}
-	
-	return strings.Join(lines, "\n")
 }
 
 func main() {
