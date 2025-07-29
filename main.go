@@ -114,6 +114,12 @@ func ensureRepo() error {
 		if err != nil {
 			return fmt.Errorf("git clone error: %v\n%s", err, string(out))
 		}
+	} else {
+		cmd := exec.Command("git", "-C", root, "pull")
+		out, err := cmd.CombinedOutput()
+		if err != nil {
+			return fmt.Errorf("git pull error: %v\n%s", err, string(out))
+		}
 	}
 	return nil
 }
