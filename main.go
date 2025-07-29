@@ -555,21 +555,21 @@ func (m model) View() string {
 		leftPanel := lipgloss.NewStyle().
 			Border(lipgloss.NormalBorder()).
 			BorderForeground(pink).
-			Width(leftPanelWidth).
-			Height(panelHeight).
 			Padding(1, 2).
 			Render(leftContent)
 
 		rightPanel := lipgloss.NewStyle().
 			Border(lipgloss.NormalBorder()).
 			BorderForeground(pink).
-			Width(rightPanelWidth).
-			Height(panelHeight).
 			Padding(1, 2).
 			Render(rightContent)
 
-		// Use direct Join instead of Place to preserve borders
-		body = lipgloss.JoinHorizontal(lipgloss.Top, leftPanel, rightPanel)
+		// FORCE ABSOLUTE DIMENSIONS - content cannot override these
+		leftForced := lipgloss.Place(leftPanelWidth+4, panelHeight+4, lipgloss.Left, lipgloss.Top, leftPanel)
+		rightForced := lipgloss.Place(rightPanelWidth+4, panelHeight+4, lipgloss.Left, lipgloss.Top, rightPanel)
+
+		// Use direct Join to combine the forced panels
+		body = lipgloss.JoinHorizontal(lipgloss.Top, leftForced, rightForced)
 	} else {
 		grey := lipgloss.Color("244")
 		aboutStyle := lipgloss.NewStyle().
