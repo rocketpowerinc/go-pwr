@@ -523,18 +523,15 @@ func (m model) View() string {
 
 	var body string
 	if m.activeTab == 0 {
-		// CONTENT-HEIGHT CONTROLLED LAYOUT - Force identical content heights
-		containerWidth := m.width
-		containerHeight := m.height - 10
+		// BRUTE FORCE IDENTICAL DIMENSIONS - No more complexity!
+		totalWidth := m.width
+		totalHeight := m.height - 10
 		
-		// Calculate exact dimensions
-		leftWidth := containerWidth / 3
-		rightWidth := containerWidth - leftWidth
+		// Simple 1/3 and 2/3 split
+		leftWidth := totalWidth / 3
+		rightWidth := totalWidth - leftWidth
 		
-		// CRITICAL: Control content height to ensure identical panel heights
-		contentHeight := containerHeight - 4 // Account for borders (2 top + 2 bottom)
-		
-		// Create content with proper truncation
+		// Create content
 		maxBreadcrumbWidth := leftWidth - 10
 		if maxBreadcrumbWidth < 5 {
 			maxBreadcrumbWidth = 5
@@ -546,48 +543,23 @@ func (m model) View() string {
 		}
 		
 		breadcrumb := lipgloss.NewStyle().Faint(true).Render(truncatedPath)
-		
-		// Get base content
-		leftBaseContent := breadcrumb + "\n" + m.list.View()
-		rightBaseContent := m.vp.View()
-		
-		// FORCE IDENTICAL CONTENT HEIGHTS by padding/truncating
-		leftContent := lipgloss.NewStyle().
-			Height(contentHeight).
-			Render(leftBaseContent)
-			
-		rightContent := lipgloss.NewStyle().
-			Height(contentHeight).
-			Render(rightBaseContent)
+		leftContent := breadcrumb + "\n" + m.list.View()
+		rightContent := m.vp.View()
 
-		// Create panels with borders - content height is now controlled
-		leftPanel := lipgloss.NewStyle().
+		// IDENTICAL PANEL STYLES - Same exact style for both panels
+		panelStyle := lipgloss.NewStyle().
 			Border(lipgloss.NormalBorder()).
 			BorderForeground(pink).
-			Padding(1, 2).
-			Render(leftContent)
+			Width(leftWidth).
+			Height(totalHeight).
+			Padding(1, 2)
 
-		rightPanel := lipgloss.NewStyle().
-			Border(lipgloss.NormalBorder()).
-			BorderForeground(pink).
-			Padding(1, 2).
-			Render(rightContent)
+		// Create both panels with IDENTICAL styles
+		leftPanel := panelStyle.Render(leftContent)
+		rightPanel := panelStyle.Copy().Width(rightWidth).Render(rightContent)
 
-		// Force container dimensions for width control
-		leftForced := lipgloss.Place(
-			leftWidth, containerHeight,
-			lipgloss.Left, lipgloss.Top,
-			leftPanel,
-		)
-		
-		rightForced := lipgloss.Place(
-			rightWidth, containerHeight,
-			lipgloss.Left, lipgloss.Top,
-			rightPanel,
-		)
-
-		// Join the identically-sized containers
-		body = lipgloss.JoinHorizontal(lipgloss.Top, leftForced, rightForced)
+		// Simple join - no Place() at all
+		body = lipgloss.JoinHorizontal(lipgloss.Top, leftPanel, rightPanel)
 	} else {
 		grey := lipgloss.Color("244")
 		aboutStyle := lipgloss.NewStyle().
