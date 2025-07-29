@@ -5,6 +5,10 @@
 - Scroll preview without mouse
 - When hovering over tabs with mouse or cursor add some highlighting
 
+# FYI
+
+- Syntax Highling in preview pane broke boarders
+
 # Bugs to fix
 
 - ~~Border overflow: Right panel extending beyond terminal width~~
@@ -13,11 +17,9 @@
 - ~~Width calculation: Total width exceeding terminal width~~
 - ~~Right pane changing size dynamically - now enforced with lipgloss.Place~~
 - ~~Breadcrumb affecting left panel size - now truncated and width-controlled~~
-- ~~Missing right border - fixed by proper width calculations~~
 - ~~Shell script (.sh) content breaking borders - FIXED by removing syntax highlighting~~
 - ~~Preview content corruption - FIXED by removing syntax highlighting~~
-- ~~Missing right border - fixed by proper width calculations~~
-- ~~Shell script (.sh) content breaking borders - added content sanitization~~
+- Right border visibility and perfect panel height alignment - IN PROGRESS
 
 # Test
 

@@ -252,19 +252,20 @@ func readScript(path string, cache *scriptCache) string {
 
 func (m *model) setSizes() {
 	// ABSOLUTE STATIC LAYOUT - exact same calculations as View()
-	leftPanelWidth := m.width / 3
-	rightPanelWidth := (m.width * 2) / 3
+	totalWidth := m.width
+	leftPanelWidth := totalWidth / 3
+	rightPanelWidth := totalWidth - leftPanelWidth
 	
-	// Content area accounting for borders and padding (4 chars each side)
-	leftContentWidth := leftPanelWidth - 4
-	rightContentWidth := rightPanelWidth - 4
+	// Content area accounting for borders and padding (6 chars each side)
+	leftContentWidth := leftPanelWidth - 6
+	rightContentWidth := rightPanelWidth - 6
 	
 	// Ensure positive values
-	if leftContentWidth < 1 {
-		leftContentWidth = 1
+	if leftContentWidth < 5 {
+		leftContentWidth = 5
 	}
-	if rightContentWidth < 1 {
-		rightContentWidth = 1
+	if rightContentWidth < 5 {
+		rightContentWidth = 5
 	}
 	
 	m.list.SetSize(leftContentWidth, m.height-10)
@@ -523,13 +524,27 @@ func (m model) View() string {
 	var body string
 	if m.activeTab == 0 {
 		// ABSOLUTE STATIC LAYOUT - exact pixel dimensions, never change
-		// Calculate exact 1/3 and 2/3 split with identical heights
-		leftPanelWidth := m.width / 3
-		rightPanelWidth := m.width - leftPanelWidth // Ensures no rounding issues
+		// Calculate exact dimensions ensuring borders are preserved
+		totalWidth := m.width
 		panelHeight := m.height - 10
+		
+		// Split width exactly in thirds, ensuring total doesn't exceed terminal width
+		leftPanelWidth := totalWidth / 3
+		rightPanelWidth := totalWidth - leftPanelWidth
+		
+		// Account for borders and padding in content areas
+		leftContentWidth := leftPanelWidth - 6  // 2 border + 4 padding
+		rightContentWidth := rightPanelWidth - 6 // 2 border + 4 padding
+		
+		if leftContentWidth < 5 {
+			leftContentWidth = 5
+		}
+		if rightContentWidth < 5 {
+			rightContentWidth = 5
+		}
 
 		// Truncate breadcrumb to prevent it from affecting panel size
-		maxBreadcrumbWidth := leftPanelWidth - 8 // Account for border + padding
+		maxBreadcrumbWidth := leftContentWidth - 2
 		if maxBreadcrumbWidth < 10 {
 			maxBreadcrumbWidth = 10
 		}
@@ -550,26 +565,25 @@ func (m model) View() string {
 		leftContent := breadcrumb + "\n" + m.list.View()
 		rightContent := m.vp.View()
 
-		// Create panels with exact, enforced dimensions and proper content constraints
+		// Create panels with EXACT enforced dimensions - no Place() needed
 		leftPanel := lipgloss.NewStyle().
 			Border(lipgloss.NormalBorder()).
 			BorderForeground(pink).
+			Width(leftPanelWidth).
+			Height(panelHeight).
 			Padding(1, 2).
 			Render(leftContent)
 
 		rightPanel := lipgloss.NewStyle().
 			Border(lipgloss.NormalBorder()).
 			BorderForeground(pink).
+			Width(rightPanelWidth).
+			Height(panelHeight).
 			Padding(1, 2).
 			Render(rightContent)
 
-		// FORCE ABSOLUTE DIMENSIONS - ensuring both panels are EXACTLY the same height
-		// and that the right border is preserved
-		leftForced := lipgloss.Place(leftPanelWidth, panelHeight, lipgloss.Left, lipgloss.Top, leftPanel)
-		rightForced := lipgloss.Place(rightPanelWidth, panelHeight, lipgloss.Left, lipgloss.Top, rightPanel)
-
-		// Use direct Join to combine the forced panels
-		body = lipgloss.JoinHorizontal(lipgloss.Top, leftForced, rightForced)
+		// Join panels directly - no Place() to avoid cutting borders
+		body = lipgloss.JoinHorizontal(lipgloss.Top, leftPanel, rightPanel)
 	} else {
 		grey := lipgloss.Color("244")
 		aboutStyle := lipgloss.NewStyle().
