@@ -465,7 +465,8 @@ func isWindows() bool {
 func isMac() bool {
 	return strings.Contains(strings.ToLower(os.Getenv("OSTYPE")), "darwin") ||
 		strings.Contains(strings.ToLower(os.Getenv("MACHTYPE")), "darwin") ||
-		strings.Contains(strings.ToLower(os.Getenv("TERM_PROGRAM")), "apple")
+		strings.Contains(strings.ToLower(os.Getenv("TERM_PROGRAM")), "apple") ||
+		strings.Contains(strings.ToLower(os.Getenv("TERM_PROGRAM")), "terminal")
 }
 
 func main() {
