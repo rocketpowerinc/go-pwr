@@ -523,16 +523,16 @@ func (m model) View() string {
 
 	var body string
 	if m.activeTab == 0 {
-		// BRUTE FORCE IDENTICAL DIMENSIONS - No more complexity!
+		// ULTIMATE SIMPLE APPROACH - Just use Place() correctly
 		totalWidth := m.width
 		totalHeight := m.height - 10
 		
-		// Simple 1/3 and 2/3 split
+		// Exact positioning
 		leftWidth := totalWidth / 3
 		rightWidth := totalWidth - leftWidth
 		
 		// Create content
-		maxBreadcrumbWidth := leftWidth - 10
+		maxBreadcrumbWidth := leftWidth - 15
 		if maxBreadcrumbWidth < 5 {
 			maxBreadcrumbWidth = 5
 		}
@@ -546,20 +546,25 @@ func (m model) View() string {
 		leftContent := breadcrumb + "\n" + m.list.View()
 		rightContent := m.vp.View()
 
-		// IDENTICAL PANEL STYLES - Same exact style for both panels
-		panelStyle := lipgloss.NewStyle().
+		// Create panels naturally - no size constraints
+		leftPanel := lipgloss.NewStyle().
 			Border(lipgloss.NormalBorder()).
 			BorderForeground(pink).
-			Width(leftWidth).
-			Height(totalHeight).
-			Padding(1, 2)
+			Padding(1, 2).
+			Render(leftContent)
 
-		// Create both panels with IDENTICAL styles
-		leftPanel := panelStyle.Render(leftContent)
-		rightPanel := panelStyle.Copy().Width(rightWidth).Render(rightContent)
+		rightPanel := lipgloss.NewStyle().
+			Border(lipgloss.NormalBorder()).
+			BorderForeground(pink).
+			Padding(1, 2).
+			Render(rightContent)
 
-		// Simple join - no Place() at all
-		body = lipgloss.JoinHorizontal(lipgloss.Top, leftPanel, rightPanel)
+		// Force EXACT dimensions with Place() - this MUST work
+		leftFinal := lipgloss.Place(leftWidth, totalHeight, lipgloss.Left, lipgloss.Top, leftPanel)
+		rightFinal := lipgloss.Place(rightWidth, totalHeight, lipgloss.Left, lipgloss.Top, rightPanel)
+
+		// Join - both are now exactly the same height
+		body = lipgloss.JoinHorizontal(lipgloss.Top, leftFinal, rightFinal)
 	} else {
 		grey := lipgloss.Color("244")
 		aboutStyle := lipgloss.NewStyle().

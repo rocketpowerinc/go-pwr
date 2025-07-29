@@ -19,7 +19,7 @@
 - ~~Breadcrumb affecting left panel size - now truncated and width-controlled~~
 - ~~Shell script (.sh) content breaking borders - FIXED by removing syntax highlighting~~
 - ~~Preview content corruption - FIXED by removing syntax highlighting~~
-- Right border visibility and perfect panel height alignment - IN PROGRESS
+- Right border visibility and perfect panel height alignment - STUBBORN ISSUE - trying Place() approach
 
 # Test
 
