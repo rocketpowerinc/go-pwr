@@ -349,17 +349,40 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case tea.MouseMsg:
 		if msg.Type == tea.MouseLeft {
-			x := 1
-			for i, tab := range m.tabs {
-				end := x + len(tab) + 2
-				if msg.X >= x && msg.X < end {
-					m.activeTab = i
-					if i == 0 {
-						m.list.SetItems(m.scriptItems)
+			// Only handle clicks on the first line (tab bar area)
+			if msg.Y == 0 {
+				x := 0
+				for i, tab := range m.tabs {
+					// Calculate the exact rendered width of this tab
+					style := tabInactiveStyle.Copy()
+					if i == m.activeTab {
+						style = style.Inherit(tabActiveStyle)
 					}
-					break
+					renderedTab := style.Render(tab)
+					tabWidth := lipgloss.Width(renderedTab)
+					
+					// Check if click is within this specific tab's bounds
+					if msg.X >= x && msg.X < x+tabWidth {
+						m.activeTab = i
+						if i == 0 {
+							m.list.SetItems(m.scriptItems)
+							if sel, ok := m.list.SelectedItem().(scriptItem); ok {
+								if isScriptFile(sel.name) {
+									ext := filepath.Ext(sel.path)
+									m.vp.SetContent(highlightScript(readScript(sel.path, m.cache), ext))
+								} else {
+									m.vp.SetContent("Select a script to preview...")
+								}
+							}
+						} else {
+							m.vp.SetContent("A cross-platform script browser powered by RocketPowerInc.")
+						}
+						break
+					}
+					
+					// Move to next tab position (tab width + 2 spaces separator)
+					x += tabWidth + 2
 				}
-				x = end + 2
 			}
 		}
 
