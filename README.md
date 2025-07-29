@@ -7,8 +7,17 @@
 The application automatically clones the [scriptbin repository](https://github.com/rocketpowerinc/scriptbin) to a `scriptbin` directory alongside the go-pwr installation for easy access and management.
 
 ## Installation
+To install the Go Power application, ensure that you have Go installed on your computer. You can download it from the official Go website: https://golang.org/dl/ or use a command below.
 
-To install the Go Power application, ensure that you have Go installed on your computer. You can download it from the official Go website: https://golang.org/dl/.
+- Windows
+    - `winget install -e --id GoLang.Go`
+- MacOS
+    - `brew install go`
+- Ubuntu
+    - https://www.youtube.com/watch?v=Ce1oxMvINVE&list=WL&index=16
+    - `sudo snap install go --classic`
+    - Bashrc `export PATH=/snap/bin:$PATH`
+
 
 Once Go is installed, set your GOPATH correctly. Then, run the following command in your terminal:
 
@@ -94,6 +103,11 @@ Linux - Add to Bash Path
 `echo 'export PATH="$HOME/go/bin:$PATH"' >> ~/.bashrc && source ~/.bashrc`
 Mac - Add to ZSH Path
 `echo 'export PATH="$HOME/go/bin:$PATH"' >> ~/.zshrc && source ~/.zshrc`
+
+
+## Benefits of having scripts in the separate scriptbin repo
+- End user never has to update go-pwr because all scripts will be fresh from script bin all the time
+- I can utilise scriptbin repo in other projects
 
 ## Contributing
 

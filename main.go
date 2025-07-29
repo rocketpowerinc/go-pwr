@@ -99,7 +99,7 @@ func highlightScript(content, ext string) string {
 	if content == "" {
 		return content
 	}
-	
+
 	// No syntax highlighting - just return clean content
 	return sanitizeContentForBorders(content)
 }
@@ -111,7 +111,7 @@ func sanitizeContentForBorders(content string) string {
 	content = strings.ReplaceAll(content, "\r\n", "\n") // Normalize line endings
 	content = strings.ReplaceAll(content, "\r", "\n")   // Handle old Mac line endings
 	content = strings.ReplaceAll(content, "\x00", "")   // Remove null bytes
-	
+
 	// Remove any stray ANSI sequences that might interfere
 	lines := strings.Split(content, "\n")
 	for i, line := range lines {
@@ -120,7 +120,7 @@ func sanitizeContentForBorders(content string) string {
 			lines[i] = line[:200] + "..."
 		}
 	}
-	
+
 	return strings.Join(lines, "\n")
 }
 
@@ -132,23 +132,23 @@ func getScriptbinPath() (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to get executable path: %v", err)
 	}
-	
+
 	// Get the directory containing the executable
 	exeDir := filepath.Dir(exePath)
-	
+
 	// Try to find the go-pwr source directory
 	// Check if we're running from the development directory (has main.go)
 	if _, err := os.Stat(filepath.Join(exeDir, "main.go")); err == nil {
 		// We're in the development directory
 		return filepath.Join(exeDir, "scriptbin"), nil
 	}
-	
+
 	// Check if there's a go-pwr directory in common locations
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		return "", fmt.Errorf("failed to get user home directory: %v", err)
 	}
-	
+
 	// Common locations where go-pwr might be cloned
 	possiblePaths := []string{
 		filepath.Join(homeDir, "go-pwr"),
@@ -156,13 +156,13 @@ func getScriptbinPath() (string, error) {
 		filepath.Join(homeDir, "projects", "go-pwr"),
 		filepath.Join(homeDir, "src", "go-pwr"),
 	}
-	
+
 	for _, path := range possiblePaths {
 		if _, err := os.Stat(filepath.Join(path, "main.go")); err == nil {
 			return filepath.Join(path, "scriptbin"), nil
 		}
 	}
-	
+
 	// If we can't find the source directory, create scriptbin next to the executable
 	// This handles the case where go-pwr is installed via go install
 	return filepath.Join(exeDir, "scriptbin"), nil
@@ -173,20 +173,20 @@ func ensureRepo() error {
 	if err != nil {
 		return err
 	}
-	
+
 	// Always remove and re-clone for fresh content
 	if _, err := os.Stat(root); err == nil {
 		if err := os.RemoveAll(root); err != nil {
 			return fmt.Errorf("failed to remove old scriptbin: %v", err)
 		}
 	}
-	
+
 	cmd := exec.Command("git", "clone", "https://github.com/rocketpowerinc/scriptbin.git", root)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("git clone error: %v\n%s", err, string(out))
 	}
-	
+
 	return nil
 }
 
@@ -196,10 +196,10 @@ func getScriptItems(root string) []list.Item {
 	if err != nil {
 		return items
 	}
-	
+
 	// Pre-allocate slice with estimated capacity
 	items = make([]list.Item, 0, len(entries))
-	
+
 	// Sort entries: directories first, then files, both alphabetically
 	sort.Slice(entries, func(i, j int) bool {
 		if entries[i].IsDir() && !entries[j].IsDir() {
@@ -210,14 +210,14 @@ func getScriptItems(root string) []list.Item {
 		}
 		return strings.ToLower(entries[i].Name()) < strings.ToLower(entries[j].Name())
 	})
-	
+
 	for _, entry := range entries {
 		name := entry.Name()
 		// Skip hidden files and directories
 		if strings.HasPrefix(name, ".") {
 			continue
 		}
-		
+
 		path := filepath.Join(root, name)
 		if entry.IsDir() {
 			items = append(items, scriptItem{name: name + "/", path: path})
@@ -237,14 +237,14 @@ func readScript(path string, cache *scriptCache) string {
 	if content, exists := cache.get(path); exists {
 		return content
 	}
-	
+
 	data, err := os.ReadFile(path)
 	if err != nil {
 		errMsg := fmt.Sprintf("Error reading file: %v", err)
 		cache.set(path, errMsg) // Cache errors too to avoid repeated attempts
 		return errMsg
 	}
-	
+
 	content := string(data)
 	cache.set(path, content)
 	return content
@@ -255,11 +255,11 @@ func (m *model) setSizes() {
 	// Account for borders in width calculations to prevent overflow
 	leftPanelWidth := (m.width / 3) - 2  // -2 for left panel border
 	rightPanelWidth := ((m.width * 2) / 3) - 2  // -2 for right panel border
-	
+
 	// Content area accounting for borders and padding
 	leftContentWidth := leftPanelWidth - 8
 	rightContentWidth := rightPanelWidth - 8
-	
+
 	// Ensure positive values
 	if leftContentWidth < 5 {
 		leftContentWidth = 5
@@ -267,7 +267,7 @@ func (m *model) setSizes() {
 	if rightContentWidth < 5 {
 		rightContentWidth = 5
 	}
-	
+
 	m.list.SetSize(leftContentWidth, m.height-10)
 	m.vp.Width = rightContentWidth
 	m.vp.Height = m.height - 10
@@ -299,7 +299,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					}
 					renderedTab := style.Render(tab)
 					tabWidth := lipgloss.Width(renderedTab)
-					
+
 					// Check if click is within this specific tab's bounds
 					if msg.X >= x && msg.X < x+tabWidth {
 						m.activeTab = i
@@ -318,7 +318,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						}
 						break
 					}
-					
+
 					// Move to next tab position (tab width + 2 spaces separator)
 					x += tabWidth + 2
 				}
@@ -534,13 +534,13 @@ func (m model) View() string {
 		if maxBreadcrumbWidth < 10 {
 			maxBreadcrumbWidth = 10
 		}
-		
+
 		truncatedPath := m.currentPath
 		if len(truncatedPath) > maxBreadcrumbWidth {
 			// Truncate from the beginning, keeping the end
 			truncatedPath = "..." + truncatedPath[len(truncatedPath)-maxBreadcrumbWidth+3:]
 		}
-		
+
 		// Enforce maximum width to guarantee no overflow
 		breadcrumb := lipgloss.NewStyle().
 			Faint(true).
