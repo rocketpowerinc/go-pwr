@@ -1,7 +1,7 @@
 # Features
 - Anyone can easily change the repo it will explore
 - Have the script run in the preview pane and not open another terminal
-- Mac does not run the flatpak/Gum test script properly, it looks like it runs the ps1 file???
+- Scroll preview without mouse
 
 # Bugs to fix
 - ~~Can't see right boarder of preview window, even in full screen~~
