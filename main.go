@@ -195,20 +195,47 @@ func highlightStrings(line string) string {
 }
 
 // getScriptbinPath returns the path where scriptbin should be stored
-// It uses a consistent location in the user's home directory
+// It tries to find the go-pwr installation directory and places scriptbin there
 func getScriptbinPath() (string, error) {
+	// Get the executable path
+	exePath, err := os.Executable()
+	if err != nil {
+		return "", fmt.Errorf("failed to get executable path: %v", err)
+	}
+	
+	// Get the directory containing the executable
+	exeDir := filepath.Dir(exePath)
+	
+	// Try to find the go-pwr source directory
+	// Check if we're running from the development directory (has main.go)
+	if _, err := os.Stat(filepath.Join(exeDir, "main.go")); err == nil {
+		// We're in the development directory
+		return filepath.Join(exeDir, "scriptbin"), nil
+	}
+	
+	// Check if there's a go-pwr directory in common locations
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		return "", fmt.Errorf("failed to get user home directory: %v", err)
 	}
 	
-	// Create a .go-pwr directory in the user's home for storing scriptbin
-	appDir := filepath.Join(homeDir, ".go-pwr")
-	if err := os.MkdirAll(appDir, 0755); err != nil {
-		return "", fmt.Errorf("failed to create app directory: %v", err)
+	// Common locations where go-pwr might be cloned
+	possiblePaths := []string{
+		filepath.Join(homeDir, "go-pwr"),
+		filepath.Join(homeDir, "Github-pwr", "go-pwr"),
+		filepath.Join(homeDir, "projects", "go-pwr"),
+		filepath.Join(homeDir, "src", "go-pwr"),
 	}
 	
-	return filepath.Join(appDir, "scriptbin"), nil
+	for _, path := range possiblePaths {
+		if _, err := os.Stat(filepath.Join(path, "main.go")); err == nil {
+			return filepath.Join(path, "scriptbin"), nil
+		}
+	}
+	
+	// If we can't find the source directory, create scriptbin next to the executable
+	// This handles the case where go-pwr is installed via go install
+	return filepath.Join(exeDir, "scriptbin"), nil
 }
 
 func ensureRepo() error {

@@ -1,0 +1,22 @@
+# Ignore the cloned scriptbin repository
+scriptbin/
+
+# Ignore Go build artifacts
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Ignore test binary
+*.test
+
+# Ignore output of the go coverage tool
+*.out
+
+# Ignore Go workspace files
+go.work
+go.work.sum
+
+# Ignore OS-specific files
+.DS_Store
+Thumbs.db

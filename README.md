@@ -4,7 +4,7 @@
 
 `go-pwr` is a simple command-line application built using the Go programming language. It utilizes the Bubble Tea framework to create an interactive user interface.
 
-The application automatically clones the [scriptbin repository](https://github.com/rocketpowerinc/scriptbin) to `~/.go-pwr/scriptbin` (or `%USERPROFILE%\.go-pwr\scriptbin` on Windows) for consistent access regardless of where the application is run from.
+The application automatically clones the [scriptbin repository](https://github.com/rocketpowerinc/scriptbin) to a `scriptbin` directory alongside the go-pwr installation for easy access and management.
 
 ## Installation
 
