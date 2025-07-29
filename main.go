@@ -236,7 +236,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 								} else {
 									scriptCmd = "bash " + sel.path
 								}
-								osaCmd := fmt.Sprintf(`tell application "Terminal" to do script "clear; %s; echo; read -n 1 -s -r -p 'Press Enter to exit'"; activate`, scriptCmd)
+								osaCmd := fmt.Sprintf(`tell application "Terminal"
+        do script "clear; %s; echo; read -n 1 -s -r -p 'Press Enter to exit'"
+        activate
+    end tell`, scriptCmd)
 								cmd = exec.Command("osascript", "-e", osaCmd)
 							} else {
 								// Linux: try common terminals
