@@ -115,10 +115,14 @@ func ensureRepo() error {
 			return fmt.Errorf("git clone error: %v\n%s", err, string(out))
 		}
 	} else {
-		cmd := exec.Command("git", "-C", root, "pull")
+		// Remove the existing directory and re-clone
+		if err := os.RemoveAll(root); err != nil {
+			return fmt.Errorf("failed to remove old scriptbin: %v", err)
+		}
+		cmd := exec.Command("git", "clone", "https://github.com/rocketpowerinc/scriptbin.git")
 		out, err := cmd.CombinedOutput()
 		if err != nil {
-			return fmt.Errorf("git pull error: %v\n%s", err, string(out))
+			return fmt.Errorf("git clone error: %v\n%s", err, string(out))
 		}
 	}
 	return nil
