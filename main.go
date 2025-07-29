@@ -252,8 +252,9 @@ func readScript(path string, cache *scriptCache) string {
 
 func (m *model) setSizes() {
 	// SIMPLE STATIC LAYOUT - same calculations as View()
-	leftPanelWidth := m.width / 3
-	rightPanelWidth := (m.width * 2) / 3
+	// Account for borders in width calculations to prevent overflow
+	leftPanelWidth := (m.width / 3) - 2  // -2 for left panel border
+	rightPanelWidth := ((m.width * 2) / 3) - 2  // -2 for right panel border
 	
 	// Content area accounting for borders and padding
 	leftContentWidth := leftPanelWidth - 8
@@ -523,8 +524,9 @@ func (m model) View() string {
 	var body string
 	if m.activeTab == 0 {
 		// SIMPLE STATIC LAYOUT - Back to basics that worked
-		leftPanelWidth := m.width / 3
-		rightPanelWidth := (m.width * 2) / 3
+		// Account for borders in width calculations to prevent overflow
+		leftPanelWidth := (m.width / 3) - 2  // -2 for left panel border
+		rightPanelWidth := ((m.width * 2) / 3) - 2  // -2 for right panel border
 		panelHeight := m.height - 10
 
 		// Truncate breadcrumb to prevent it from affecting panel size
