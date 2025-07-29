@@ -229,13 +229,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.activeTab == 0 && m.focus == focusList {
 				m.list, _ = m.list.Update(msg) // Ensure list state is updated
 				if sel, ok := m.list.SelectedItem().(scriptItem); ok {
-					fmt.Println("Selected script:", sel.name, sel.path)
-					data, err := os.ReadFile(sel.path)
-					if err != nil {
-						fmt.Println("Error reading script file:", err)
-					} else {
-						fmt.Println("Script contents:\n", string(data))
-					}
+					fmt.Println("Selected script:", sel.name, sel.path) // Debug print
 					if !strings.HasSuffix(sel.name, "/") {
 						m.vp.SetContent("Running script in a new terminal window...")
 						go func() {
