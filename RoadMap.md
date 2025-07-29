@@ -31,3 +31,5 @@
 - Ask it to optimise
 - Ask it to look for vulnerabilty
 - Ask it for error checking and dubugging
+- Ask it to explain the main.go line by line
+- Ask it for cool new features, but that will also work on a ubuntu server
