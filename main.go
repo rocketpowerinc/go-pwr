@@ -358,22 +358,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.vp.SetContent("A cross-platform script browser powered by RocketPowerInc.")
 			}
 		case "ctrl+left":
-			// Switch focus to list pane (only in Scripts tab)
+			// Switch focus to list pane (Windows/Linux/Mac - only in Scripts tab)
 			if m.activeTab == 0 {
 				m.focus = focusList
 			}
 		case "ctrl+right":
-			// Switch focus to preview pane (only in Scripts tab)
-			if m.activeTab == 0 {
-				m.focus = focusPreview
-			}
-		case "cmd+left":
-			// Mac: Switch focus to list pane (only in Scripts tab)
-			if m.activeTab == 0 {
-				m.focus = focusList
-			}
-		case "cmd+right":
-			// Mac: Switch focus to preview pane (only in Scripts tab)
+			// Switch focus to preview pane (Windows/Linux/Mac - only in Scripts tab)
 			if m.activeTab == 0 {
 				m.focus = focusPreview
 			}
@@ -387,21 +377,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.activeTab == 0 {
 				m.focus = focusPreview
 			}
-		case "option+left":
-			// Mac Option key: Switch focus to list pane (only in Scripts tab)
-			if m.activeTab == 0 {
-				m.focus = focusList
-			}
-		case "option+right":
-			// Mac Option key: Switch focus to preview pane (only in Scripts tab)
-			if m.activeTab == 0 {
-				m.focus = focusPreview
-			}
 		case "r":
 			if m.activeTab == 0 && m.focus == focusList {
 				m.list, _ = m.list.Update(msg) // Ensure list state is updated
 				if sel, ok := m.list.SelectedItem().(scriptItem); ok {
-					fmt.Println("Selected script:", sel.name, sel.path) // Debug print
 					if !strings.HasSuffix(sel.name, "/") {
 						m.vp.SetContent("Running script in a new terminal window...")
 						go func() {
