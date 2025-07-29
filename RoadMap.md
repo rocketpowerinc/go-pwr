@@ -4,7 +4,7 @@
 # Bugs to fix
 - ~~Can't see right boarder of preview window, even in full screen~~
 - ~~Fixed ps1 scripts not opening on linux~~
-- some scripts are all broken but only in windows??
+- some scripts are all broken but only in windows?? (I think its because the window sizes change size for some reason even on mac and linux but they don't break)
 
 # Test
 - Test App on Mac

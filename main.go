@@ -229,7 +229,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 									cmd = exec.Command("cmd", "/C", "start", "cmd", "/K", "cls && bash -l "+sel.path+" & pause")
 								}
 							} else if isMac() {
-								// Mac: use osascript to open Terminal and run the script
+								// Always use osascript for Mac
 								scriptCmd := sel.path
 								if strings.HasSuffix(sel.name, ".ps1") {
 									scriptCmd = "pwsh " + sel.path
@@ -466,7 +466,9 @@ func isMac() bool {
 	return strings.Contains(strings.ToLower(os.Getenv("OSTYPE")), "darwin") ||
 		strings.Contains(strings.ToLower(os.Getenv("MACHTYPE")), "darwin") ||
 		strings.Contains(strings.ToLower(os.Getenv("TERM_PROGRAM")), "apple") ||
-		strings.Contains(strings.ToLower(os.Getenv("TERM_PROGRAM")), "terminal")
+		strings.Contains(strings.ToLower(os.Getenv("TERM_PROGRAM")), "terminal") ||
+		strings.Contains(strings.ToLower(os.Getenv("SHELL")), "zsh") || // Most Mac users use zsh
+		strings.Contains(strings.ToLower(os.Getenv("HOME")), "/Users/")
 }
 
 func main() {
