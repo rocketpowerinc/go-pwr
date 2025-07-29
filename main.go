@@ -357,14 +357,15 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			} else {
 				m.vp.SetContent("A cross-platform script browser powered by RocketPowerInc.")
 			}
-		case "ctrl+tab":
-			// Switch focus between list and preview panes (only in Scripts tab)
+		case "ctrl+left":
+			// Switch focus to list pane (only in Scripts tab)
 			if m.activeTab == 0 {
-				if m.focus == focusList {
-					m.focus = focusPreview
-				} else {
-					m.focus = focusList
-				}
+				m.focus = focusList
+			}
+		case "ctrl+right":
+			// Switch focus to preview pane (only in Scripts tab)
+			if m.activeTab == 0 {
+				m.focus = focusPreview
 			}
 		case "r":
 			if m.activeTab == 0 && m.focus == focusList {
@@ -422,57 +423,30 @@ end tell`, scriptCmd)
 				}
 			}
 		case "left":
-			// Check if we're in Scripts tab and can navigate tabs
-			if m.focus == focusPreview || m.currentPath == "" || len(m.parentPaths) == 0 {
-				// Navigate to previous tab
-				m.activeTab = (m.activeTab - 1 + len(m.tabs)) % len(m.tabs)
-				if m.activeTab == 0 {
-					m.list.SetItems(m.scriptItems)
-					if sel, ok := m.list.SelectedItem().(scriptItem); ok {
-						if strings.HasSuffix(sel.name, ".sh") || strings.HasSuffix(sel.name, ".ps1") {
-							ext := filepath.Ext(sel.path)
-							m.vp.SetContent(highlightScript(readScript(sel.path, m.cache), ext))
-						} else {
-							m.vp.SetContent("Select a script to preview...")
-						}
-					}
-				} else {
-					m.vp.SetContent("A cross-platform script browser powered by RocketPowerInc.")
-				}
-			} else {
-				// Go back to parent directory if possible
-				if m.activeTab == 0 && m.focus == focusList && m.currentPath != "" && len(m.parentPaths) > 0 {
-					parent := m.parentPaths[len(m.parentPaths)-1]
-					m.parentPaths = m.parentPaths[:len(m.parentPaths)-1]
-					m.scriptItems = getScriptItems(parent.path)
-					m.list.SetItems(m.scriptItems)
-					m.list.Select(parent.index) // Restore previous selection
-					m.currentPath = parent.path
-					// Show preview for selected item
-					if sel, ok := m.list.SelectedItem().(scriptItem); ok {
-						if strings.HasSuffix(sel.name, ".sh") || strings.HasSuffix(sel.name, ".ps1") {
-							ext := filepath.Ext(sel.path)
-							m.vp.SetContent(highlightScript(readScript(sel.path, m.cache), ext))
-						} else {
-							m.vp.SetContent("Select a script to preview...")
-						}
+			// Go back to parent directory if possible
+			if m.activeTab == 0 && m.focus == focusList && m.currentPath != "" && len(m.parentPaths) > 0 {
+				parent := m.parentPaths[len(m.parentPaths)-1]
+				m.parentPaths = m.parentPaths[:len(m.parentPaths)-1]
+				m.scriptItems = getScriptItems(parent.path)
+				m.list.SetItems(m.scriptItems)
+				m.list.Select(parent.index) // Restore previous selection
+				m.currentPath = parent.path
+				// Show preview for selected item
+				if sel, ok := m.list.SelectedItem().(scriptItem); ok {
+					if strings.HasSuffix(sel.name, ".sh") || strings.HasSuffix(sel.name, ".ps1") {
+						ext := filepath.Ext(sel.path)
+						m.vp.SetContent(highlightScript(readScript(sel.path, m.cache), ext))
 					} else {
 						m.vp.SetContent("Select a script to preview...")
 					}
-					return m, nil
+				} else {
+					m.vp.SetContent("Select a script to preview...")
 				}
+				return m, nil
 			}
 		case "right":
-			// Check if we can navigate into directory or should switch tabs
-			canNavigateDir := false
+			// Traverse into selected directory if possible
 			if m.activeTab == 0 && m.focus == focusList {
-				if sel, ok := m.list.SelectedItem().(scriptItem); ok && strings.HasSuffix(sel.name, "/") {
-					canNavigateDir = true
-				}
-			}
-			
-			if canNavigateDir {
-				// Traverse into selected directory
 				if sel, ok := m.list.SelectedItem().(scriptItem); ok {
 					if strings.HasSuffix(sel.name, "/") {
 						m.parentPaths = append(m.parentPaths, parentNav{path: m.currentPath, index: m.list.Index()})
@@ -495,22 +469,6 @@ end tell`, scriptCmd)
 						}
 						return m, nil
 					}
-				}
-			} else {
-				// Navigate to next tab
-				m.activeTab = (m.activeTab + 1) % len(m.tabs)
-				if m.activeTab == 0 {
-					m.list.SetItems(m.scriptItems)
-					if sel, ok := m.list.SelectedItem().(scriptItem); ok {
-						if strings.HasSuffix(sel.name, ".sh") || strings.HasSuffix(sel.name, ".ps1") {
-							ext := filepath.Ext(sel.path)
-							m.vp.SetContent(highlightScript(readScript(sel.path, m.cache), ext))
-						} else {
-							m.vp.SetContent("Select a script to preview...")
-						}
-					}
-				} else {
-					m.vp.SetContent("A cross-platform script browser powered by RocketPowerInc.")
 				}
 			}
 		case "enter":
@@ -678,7 +636,7 @@ func (m model) View() string {
 		)
 	}
 
-	footer := lipgloss.NewStyle().Foreground(pink).MarginTop(1).Align(lipgloss.Center).Render("Tab/Shift+Tab Switch Tabs • ← → Navigate/Switch Tabs • ↑↓ Select/Scroll • Ctrl+Tab Switch Panes • Enter Preview • r Run Script • q Quit")
+	footer := lipgloss.NewStyle().Foreground(pink).MarginTop(1).Align(lipgloss.Center).Render("Tab/Shift+Tab Switch Tabs • ← → Navigate Dirs • ↑↓ Select/Scroll • Ctrl+← Ctrl+→ Switch Panes • Enter Preview • r Run Script • q Quit")
 
 	if m.activeTab == 0 {
 		return lipgloss.JoinVertical(lipgloss.Left,
