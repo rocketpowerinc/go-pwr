@@ -321,16 +321,28 @@ func readScript(path string, cache *scriptCache) string {
 }
 
 func (m *model) setSizes() {
-	listW := m.width / 3
-	if listW < 20 {
-		listW = 20
+	// Fixed layout: left panel is 1/3, right panel is 2/3
+	// Account for border padding and spacing
+	const borderPadding = 4 // 2 chars padding on each side
+	const panelGap = 1      // Gap between panels
+	
+	leftW := m.width / 3
+	if leftW < 25 {
+		leftW = 25 // Minimum width for usability
 	}
-	vpW := m.width - listW
-	if vpW < 20 {
-		vpW = 20
+	
+	// Calculate right panel width accounting for left panel + borders + gap
+	rightW := m.width - leftW - borderPadding - panelGap
+	if rightW < 30 {
+		rightW = 30 // Minimum width for usability
 	}
-	m.list.SetSize(listW, m.height-10)
-	m.vp.Width = vpW
+	
+	// Set consistent sizes for the components
+	listContentW := leftW - borderPadding
+	vpContentW := rightW - borderPadding
+	
+	m.list.SetSize(listContentW, m.height-10)
+	m.vp.Width = vpContentW
 	m.vp.Height = m.height - 10
 }
 
@@ -582,21 +594,44 @@ func (m model) View() string {
 	}
 	tabBar := tabBarStyle.Render(strings.Join(tabLabels, "  "))
 
-	centerStyle := lipgloss.NewStyle().Align(lipgloss.Center).Height(m.height-10)
 	breadcrumb := lipgloss.NewStyle().Faint(true).Render(m.currentPath)
 
 	var body string
 	if m.activeTab == 0 {
+		// Use the same layout calculations as setSizes for consistency
+		const borderPadding = 4
+		const panelGap = 1
+		
 		leftW := m.width / 3
-		rightW := m.width - leftW - 4
+		if leftW < 25 {
+			leftW = 25
+		}
+		
+		rightW := m.width - leftW - borderPadding - panelGap
+		if rightW < 30 {
+			rightW = 30
+		}
+		
 		panelHeight := m.height - 10
 
-		left := borderStyle.Width(leftW).Height(panelHeight).Render(
-			breadcrumb + m.list.View(),
-		)
+		// Create static border styles with fixed dimensions
+		leftBorderStyle := lipgloss.NewStyle().
+			Border(lipgloss.NormalBorder()).
+			BorderForeground(pink).
+			Padding(1, 2).
+			Width(leftW - borderPadding).
+			Height(panelHeight)
 
-		rightBorderStyle := borderStyle.Copy().BorderRight(true)
-		right := rightBorderStyle.Width(rightW).Height(panelHeight).Render(centerStyle.Render(m.vp.View()))
+		rightBorderStyle := lipgloss.NewStyle().
+			Border(lipgloss.NormalBorder()).
+			BorderForeground(pink).
+			Padding(1, 2).
+			Width(rightW - borderPadding).
+			Height(panelHeight)
+
+		// Render panels with consistent dimensions
+		left := leftBorderStyle.Render(breadcrumb + "\n" + m.list.View())
+		right := rightBorderStyle.Render(m.vp.View())
 
 		body = lipgloss.JoinHorizontal(lipgloss.Top, left, right)
 	} else {
