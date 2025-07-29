@@ -367,6 +367,16 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.activeTab == 0 {
 				m.focus = focusPreview
 			}
+		case "cmd+left":
+			// Mac: Switch focus to list pane (only in Scripts tab)
+			if m.activeTab == 0 {
+				m.focus = focusList
+			}
+		case "cmd+right":
+			// Mac: Switch focus to preview pane (only in Scripts tab)
+			if m.activeTab == 0 {
+				m.focus = focusPreview
+			}
 		case "r":
 			if m.activeTab == 0 && m.focus == focusList {
 				m.list, _ = m.list.Update(msg) // Ensure list state is updated
