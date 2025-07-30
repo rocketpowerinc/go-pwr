@@ -848,9 +848,9 @@ func (m model) View() string {
 
 		body = lipgloss.JoinHorizontal(lipgloss.Top, leftPanel, rightPanel)
 	} else {
-		// About tab - consistent layout with other tabs
+		// About tab - push footer closer to bottom
 		grey := lipgloss.Color("244")
-		panelHeight := m.height - 10
+		panelHeight := m.height - 15  // Reduced height to push footer down
 		
 		aboutContent := "A cross-platform script browser powered by RocketPowerInc.\n\nMade with Bubble Tea, Lipgloss, and Go.\n\nVisit us at https://github.com/rocketpowerinc"
 		
@@ -866,7 +866,7 @@ func (m model) View() string {
 		body = aboutPanel
 	}
 
-	footer := lipgloss.NewStyle().Foreground(currentColors.primary).MarginTop(1).Align(lipgloss.Center).Render("Tab/Shift+Tab Switch Tabs • ← → Navigate Dirs • ↑↓ Select/Scroll • Ctrl+← Ctrl+→ Switch Panes • Enter Run/Select • q Quit")
+	footer := lipgloss.NewStyle().Foreground(currentColors.primary).MarginTop(1).Align(lipgloss.Center).Render("'Tab' Switch Tabs • '←↑↓→' Navigate • 'Ctrl+← →' Switch Panes • 'Enter' Run/Select • 'q' Quit")
 
 	return lipgloss.JoinVertical(lipgloss.Left,
 		tabBar,
