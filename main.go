@@ -393,7 +393,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					// Check if click is within this specific tab's bounds
 					if msg.X >= x && msg.X < x+tabWidth {
 						m.activeTab = i
+						m.focus = focusList // Reset focus when switching tabs
+						
 						if i == 0 {
+							// Scripts tab
 							m.list.SetItems(m.scriptItems)
 							if sel, ok := m.list.SelectedItem().(scriptItem); ok {
 								if isScriptFile(sel.name) {
@@ -402,8 +405,16 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 								} else {
 									m.vp.SetContent("Select a script to preview...")
 								}
+							} else {
+								m.vp.SetContent("Select a script to preview...")
 							}
+						} else if i == 1 {
+							// Options tab
+							m.list.SetItems(m.optionCategories)
+							m.selectedCategory = ""
+							m.vp.SetContent("Select an option category from the left to see available settings.")
 						} else {
+							// About tab
 							m.vp.SetContent("A cross-platform script browser powered by RocketPowerInc.")
 						}
 						break
