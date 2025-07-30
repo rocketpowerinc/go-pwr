@@ -74,7 +74,6 @@ Visual Enhancements
 - **Script Previews**: Show script description/comments in preview
 - **Execution Status**: Visual indicator for running/completed/failed scripts
 - **Progress Bars**: For long-running scripts
-- **Color Themes**: Different color schemes
 
 Server-Friendly Features
 - **SSH Mode**: Run scripts on remote servers
