@@ -64,17 +64,17 @@ type colorScheme struct {
 
 var colorSchemes = []colorScheme{
 	{
-		name:      "Rocket Pink",
-		primary:   lipgloss.Color("205"), // pink
-		secondary: lipgloss.Color("93"),  // purple
-		accent:    lipgloss.Color("198"), // bright pink
-		dim:       lipgloss.Color("244"), // gray
-	},
-	{
 		name:      "Ocean Breeze",
 		primary:   lipgloss.Color("39"),  // bright blue
 		secondary: lipgloss.Color("33"),  // blue
 		accent:    lipgloss.Color("45"),  // cyan
+		dim:       lipgloss.Color("244"), // gray
+	},
+	{
+		name:      "Rocket Pink",
+		primary:   lipgloss.Color("205"), // pink
+		secondary: lipgloss.Color("93"),  // purple
+		accent:    lipgloss.Color("198"), // bright pink
 		dim:       lipgloss.Color("244"), // gray
 	},
 	{
@@ -394,7 +394,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					if msg.X >= x && msg.X < x+tabWidth {
 						m.activeTab = i
 						m.focus = focusList // Reset focus when switching tabs
-						
+
 						if i == 0 {
 							// Scripts tab
 							m.list.SetItems(m.scriptItems)
@@ -687,10 +687,10 @@ end tell`, scriptCmd)
 				// Options tab - apply selected option
 				if m.selectedCategory == "color_schemes" {
 					if sel, ok := m.optionsRightList.SelectedItem().(optionItem); ok {
-						if strings.Contains(sel.name, "Rocket Pink") {
+						if strings.Contains(sel.name, "Ocean Breeze") {
 							m.currentScheme = 0
 							initColors(colorSchemes[0])
-						} else if strings.Contains(sel.name, "Ocean Breeze") {
+						} else if strings.Contains(sel.name, "Rocket Pink") {
 							m.currentScheme = 1
 							initColors(colorSchemes[1])
 						} else if strings.Contains(sel.name, "Forest Night") {
@@ -820,9 +820,9 @@ func (m model) View() string {
 
 		// Options title
 		optionsTitle := "Themes"
-		
+
 		leftContent := optionsTitle + "\n" + m.list.View()
-		
+
 		var rightContent string
 		if m.selectedCategory == "color_schemes" {
 			rightContent = m.optionsRightList.View()
@@ -862,9 +862,9 @@ func (m model) View() string {
 		// About tab - taller panel to push footer lower
 		grey := lipgloss.Color("244")
 		panelHeight := m.height - 6  // Increased height to push footer lower
-		
+
 		aboutContent := "A cross-platform script browser powered by RocketPowerInc.\n\nMade with Bubble Tea, Lipgloss, and Go.\n\nVisit us at https://github.com/rocketpowerinc"
-		
+
 		aboutPanel := lipgloss.NewStyle().
 			Border(lipgloss.NormalBorder()).
 			BorderForeground(grey).
@@ -873,7 +873,7 @@ func (m model) View() string {
 			Height(panelHeight).
 			Align(lipgloss.Center, lipgloss.Center).
 			Render(aboutContent)
-			
+
 		body = aboutPanel
 	}
 
