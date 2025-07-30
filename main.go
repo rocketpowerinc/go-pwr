@@ -848,18 +848,22 @@ func (m model) View() string {
 
 		body = lipgloss.JoinHorizontal(lipgloss.Top, leftPanel, rightPanel)
 	} else {
-		// About tab
+		// About tab - consistent layout with other tabs
 		grey := lipgloss.Color("244")
-		aboutStyle := lipgloss.NewStyle().
+		panelHeight := m.height - 10
+		
+		aboutContent := "A cross-platform script browser powered by RocketPowerInc.\n\nMade with Bubble Tea, Lipgloss, and Go.\n\nVisit us at https://github.com/rocketpowerinc"
+		
+		aboutPanel := lipgloss.NewStyle().
 			Border(lipgloss.NormalBorder()).
 			BorderForeground(grey).
 			Foreground(grey).
+			Width(m.width - 4).
+			Height(panelHeight).
 			Align(lipgloss.Center, lipgloss.Center).
-			Width(m.width / 2).
-			Height(m.height / 2)
-		body = lipgloss.Place(m.width, m.height-10, lipgloss.Center, lipgloss.Center,
-			aboutStyle.Render("A cross-platform script browser powered by RocketPowerInc.\n\nMade with Bubble Tea, Lipgloss, and Go. \n\nVisit us at https://github.com/rocketpowerinc"),
-		)
+			Render(aboutContent)
+			
+		body = aboutPanel
 	}
 
 	footer := lipgloss.NewStyle().Foreground(currentColors.primary).MarginTop(1).Align(lipgloss.Center).Render("Tab/Shift+Tab Switch Tabs • ← → Navigate Dirs • ↑↓ Select/Scroll • Ctrl+← Ctrl+→ Switch Panes • Enter Run/Select • q Quit")
