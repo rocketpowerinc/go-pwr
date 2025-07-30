@@ -848,9 +848,9 @@ func (m model) View() string {
 
 		body = lipgloss.JoinHorizontal(lipgloss.Top, leftPanel, rightPanel)
 	} else {
-		// About tab - consistent layout with other tabs
+		// About tab - taller panel to push footer lower
 		grey := lipgloss.Color("244")
-		panelHeight := m.height - 10
+		panelHeight := m.height - 6  // Increased height to push footer lower
 		
 		aboutContent := "A cross-platform script browser powered by RocketPowerInc.\n\nMade with Bubble Tea, Lipgloss, and Go.\n\nVisit us at https://github.com/rocketpowerinc"
 		
