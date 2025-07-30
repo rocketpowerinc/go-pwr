@@ -864,18 +864,11 @@ func (m model) View() string {
 
 	footer := lipgloss.NewStyle().Foreground(currentColors.primary).MarginTop(1).Align(lipgloss.Center).Render("Tab/Shift+Tab Switch Tabs • ← → Navigate Dirs • ↑↓ Select/Scroll • Ctrl+← Ctrl+→ Switch Panes • Enter Run/Select • q Quit")
 
-	if m.activeTab == 0 {
-		return lipgloss.JoinVertical(lipgloss.Left,
-			tabBar,
-			body,
-			footer,
-		)
-	} else {
-		return lipgloss.JoinVertical(lipgloss.Left,
-			tabBar,
-			body,
-		)
-	}
+	return lipgloss.JoinVertical(lipgloss.Left,
+		tabBar,
+		body,
+		footer,
+	)
 }
 
 type scriptDelegate struct{}
@@ -1004,6 +997,10 @@ func main() {
 	listModel.SetFilteringEnabled(false)
 	listModel.SetShowStatusBar(false)
 	listModel.SetShowPagination(false)
+	listModel.DisableQuitKeybindings()
+	listModel.Styles.Title = lipgloss.NewStyle()
+	listModel.Styles.PaginationStyle = lipgloss.NewStyle()
+	listModel.Styles.HelpStyle = lipgloss.NewStyle()
 
 	optionsCategoryModel := list.New(optionCategories, categoryDelegate{}, 0, 0)
 	optionsCategoryModel.Title = ""
@@ -1011,6 +1008,10 @@ func main() {
 	optionsCategoryModel.SetFilteringEnabled(false)
 	optionsCategoryModel.SetShowStatusBar(false)
 	optionsCategoryModel.SetShowPagination(false)
+	optionsCategoryModel.DisableQuitKeybindings()
+	optionsCategoryModel.Styles.Title = lipgloss.NewStyle()
+	optionsCategoryModel.Styles.PaginationStyle = lipgloss.NewStyle()
+	optionsCategoryModel.Styles.HelpStyle = lipgloss.NewStyle()
 
 	optionsRightModel := list.New(colorSchemeItems, optionsDelegate{}, 0, 0)
 	optionsRightModel.Title = ""
@@ -1018,6 +1019,10 @@ func main() {
 	optionsRightModel.SetFilteringEnabled(false)
 	optionsRightModel.SetShowStatusBar(false)
 	optionsRightModel.SetShowPagination(false)
+	optionsRightModel.DisableQuitKeybindings()
+	optionsRightModel.Styles.Title = lipgloss.NewStyle()
+	optionsRightModel.Styles.PaginationStyle = lipgloss.NewStyle()
+	optionsRightModel.Styles.HelpStyle = lipgloss.NewStyle()
 
 	vp := viewport.New(0, 0)
 	vp.SetContent("Select a script to preview...")
