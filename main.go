@@ -26,12 +26,76 @@ func (s scriptItem) Title() string       { return s.name }
 func (s scriptItem) Description() string { return s.path }
 func (s scriptItem) FilterValue() string { return s.name }
 
+type optionItem struct {
+	name        string
+	description string
+	action      string
+}
+
+func (o optionItem) Title() string       { return o.name }
+func (o optionItem) Description() string { return o.description }
+func (o optionItem) FilterValue() string { return o.name }
+
 type focusArea int
 
 const (
 	focusList focusArea = iota
 	focusPreview
+	focusOptions
 )
+
+type colorScheme struct {
+	name      string
+	primary   lipgloss.Color
+	secondary lipgloss.Color
+	accent    lipgloss.Color
+	dim       lipgloss.Color
+}
+
+var colorSchemes = []colorScheme{
+	{
+		name:      "Rocket Pink",
+		primary:   lipgloss.Color("205"), // pink
+		secondary: lipgloss.Color("93"),  // purple
+		accent:    lipgloss.Color("198"), // bright pink
+		dim:       lipgloss.Color("244"), // gray
+	},
+	{
+		name:      "Ocean Breeze",
+		primary:   lipgloss.Color("39"),  // bright blue
+		secondary: lipgloss.Color("33"),  // blue
+		accent:    lipgloss.Color("45"),  // cyan
+		dim:       lipgloss.Color("244"), // gray
+	},
+	{
+		name:      "Forest Night",
+		primary:   lipgloss.Color("46"),  // green
+		secondary: lipgloss.Color("34"),  // forest green
+		accent:    lipgloss.Color("82"),  // lime
+		dim:       lipgloss.Color("244"), // gray
+	},
+	{
+		name:      "Sunset Glow",
+		primary:   lipgloss.Color("208"), // orange
+		secondary: lipgloss.Color("196"), // red
+		accent:    lipgloss.Color("226"), // yellow
+		dim:       lipgloss.Color("244"), // gray
+	},
+	{
+		name:      "Purple Haze",
+		primary:   lipgloss.Color("135"), // purple
+		secondary: lipgloss.Color("93"),  // violet
+		accent:    lipgloss.Color("171"), // magenta
+		dim:       lipgloss.Color("244"), // gray
+	},
+	{
+		name:      "Arctic Frost",
+		primary:   lipgloss.Color("51"),  // cyan
+		secondary: lipgloss.Color("39"),  // blue
+		accent:    lipgloss.Color("87"),  // light blue
+		dim:       lipgloss.Color("244"), // gray
+	},
+}
 
 type parentNav struct {
 	path  string
@@ -70,30 +134,41 @@ func (sc *scriptCache) clear() {
 }
 
 type model struct {
-	list        list.Model
-	vp          viewport.Model
-	width       int
-	height      int
-	activeTab   int
-	tabs        []string
-	scriptItems []list.Item
-	focus       focusArea
-	currentPath string
-	parentPaths []parentNav
-	cache       *scriptCache
+	list           list.Model
+	vp             viewport.Model
+	width          int
+	height         int
+	activeTab      int
+	tabs           []string
+	scriptItems    []list.Item
+	focus          focusArea
+	currentPath    string
+	parentPaths    []parentNav
+	cache          *scriptCache
+	currentScheme  int
+	optionsList    list.Model
+	optionsItems   []list.Item
 }
 
 type outputMsg string
 
-var pink = lipgloss.Color("205")
-var purple = lipgloss.Color("93")
-
+// Dynamic color variables that will be updated based on current scheme
 var (
-	borderStyle      = lipgloss.NewStyle().Border(lipgloss.NormalBorder()).Padding(1, 2).BorderForeground(pink)
-	tabActiveStyle   = lipgloss.NewStyle().Bold(true).Underline(true).Padding(0, 1).Foreground(pink)
-	tabInactiveStyle = lipgloss.NewStyle().Faint(true).Padding(0, 1).Foreground(pink)
-	tabBarStyle      = lipgloss.NewStyle().MarginBottom(1).Foreground(pink)
+	currentColors colorScheme
+	borderStyle   lipgloss.Style
+	tabActiveStyle   lipgloss.Style
+	tabInactiveStyle lipgloss.Style
+	tabBarStyle      lipgloss.Style
 )
+
+// Initialize colors with default scheme
+func initColors(scheme colorScheme) {
+	currentColors = scheme
+	borderStyle = lipgloss.NewStyle().Border(lipgloss.NormalBorder()).Padding(1, 2).BorderForeground(scheme.primary)
+	tabActiveStyle = lipgloss.NewStyle().Bold(true).Underline(true).Padding(0, 1).Foreground(scheme.primary)
+	tabInactiveStyle = lipgloss.NewStyle().Faint(true).Padding(0, 1).Foreground(scheme.primary)
+	tabBarStyle = lipgloss.NewStyle().MarginBottom(1).Foreground(scheme.primary)
+}
 
 func highlightScript(content, ext string) string {
 	if content == "" {
@@ -329,7 +404,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		case "tab":
 			m.activeTab = (m.activeTab + 1) % len(m.tabs)
+			m.focus = focusList // Reset focus when switching tabs
 			if m.activeTab == 0 {
+				// Scripts tab
 				m.list.SetItems(m.scriptItems)
 				if sel, ok := m.list.SelectedItem().(scriptItem); ok {
 					if strings.HasSuffix(sel.name, ".sh") || strings.HasSuffix(sel.name, ".ps1") {
@@ -339,12 +416,19 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						m.vp.SetContent("Select a script to preview...")
 					}
 				}
+			} else if m.activeTab == 1 {
+				// Options tab
+				m.list.SetItems(m.optionsItems)
+				m.vp.SetContent("Select a color scheme to apply it instantly!")
 			} else {
+				// About tab
 				m.vp.SetContent("A cross-platform script browser powered by RocketPowerInc.")
 			}
 		case "shift+tab":
 			m.activeTab = (m.activeTab - 1 + len(m.tabs)) % len(m.tabs)
+			m.focus = focusList // Reset focus when switching tabs
 			if m.activeTab == 0 {
+				// Scripts tab
 				m.list.SetItems(m.scriptItems)
 				if sel, ok := m.list.SelectedItem().(scriptItem); ok {
 					if strings.HasSuffix(sel.name, ".sh") || strings.HasSuffix(sel.name, ".ps1") {
@@ -354,37 +438,42 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						m.vp.SetContent("Select a script to preview...")
 					}
 				}
+			} else if m.activeTab == 1 {
+				// Options tab
+				m.list.SetItems(m.optionsItems)
+				m.vp.SetContent("Select a color scheme to apply it instantly!")
 			} else {
+				// About tab
 				m.vp.SetContent("A cross-platform script browser powered by RocketPowerInc.")
 			}
 		case "ctrl+left":
-			// Switch focus to list pane (Windows/Linux/Mac - only in Scripts tab)
-			if m.activeTab == 0 {
+			// Switch focus to list pane (Windows/Linux/Mac - in Scripts and Options tabs)
+			if m.activeTab == 0 || m.activeTab == 1 {
 				m.focus = focusList
 			}
 		case "ctrl+right":
-			// Switch focus to preview pane (Windows/Linux/Mac - only in Scripts tab)
-			if m.activeTab == 0 {
+			// Switch focus to preview pane (Windows/Linux/Mac - in Scripts and Options tabs)
+			if m.activeTab == 0 || m.activeTab == 1 {
 				m.focus = focusPreview
 			}
 		case "cmd+left":
-			// Mac Command key: Switch focus to list pane (only in Scripts tab)
-			if m.activeTab == 0 {
+			// Mac Command key: Switch focus to list pane (in Scripts and Options tabs)
+			if m.activeTab == 0 || m.activeTab == 1 {
 				m.focus = focusList
 			}
 		case "cmd+right":
-			// Mac Command key: Switch focus to preview pane (only in Scripts tab)
-			if m.activeTab == 0 {
+			// Mac Command key: Switch focus to preview pane (in Scripts and Options tabs)
+			if m.activeTab == 0 || m.activeTab == 1 {
 				m.focus = focusPreview
 			}
 		case "alt+left":
-			// Alternative for Mac: Switch focus to list pane (only in Scripts tab)
-			if m.activeTab == 0 {
+			// Alternative for Mac: Switch focus to list pane (in Scripts and Options tabs)
+			if m.activeTab == 0 || m.activeTab == 1 {
 				m.focus = focusList
 			}
 		case "alt+right":
-			// Alternative for Mac: Switch focus to preview pane (only in Scripts tab)
-			if m.activeTab == 0 {
+			// Alternative for Mac: Switch focus to preview pane (in Scripts and Options tabs)
+			if m.activeTab == 0 || m.activeTab == 1 {
 				m.focus = focusPreview
 			}
 		case "r":
@@ -505,6 +594,8 @@ end tell`, scriptCmd)
 						}
 					}
 				}
+			} else if m.focus == focusList && m.activeTab == 1 {
+				m.list, cmd = m.list.Update(msg)
 			} else if m.focus == focusPreview && m.activeTab == 0 {
 				m.vp.LineUp(1)
 			}
@@ -524,8 +615,36 @@ end tell`, scriptCmd)
 						}
 					}
 				}
+			} else if m.focus == focusList && m.activeTab == 1 {
+				m.list, cmd = m.list.Update(msg)
 			} else if m.focus == focusPreview && m.activeTab == 0 {
 				m.vp.LineDown(1)
+			}
+			return m, cmd
+		case "enter":
+			if m.activeTab == 1 && m.focus == focusList {
+				if sel, ok := m.list.SelectedItem().(optionItem); ok {
+					if strings.Contains(sel.name, "Rocket Pink") {
+						m.currentScheme = 0
+						initColors(colorSchemes[0])
+					} else if strings.Contains(sel.name, "Ocean Breeze") {
+						m.currentScheme = 1
+						initColors(colorSchemes[1])
+					} else if strings.Contains(sel.name, "Forest Night") {
+						m.currentScheme = 2
+						initColors(colorSchemes[2])
+					} else if strings.Contains(sel.name, "Sunset Glow") {
+						m.currentScheme = 3
+						initColors(colorSchemes[3])
+					} else if strings.Contains(sel.name, "Purple Haze") {
+						m.currentScheme = 4
+						initColors(colorSchemes[4])
+					} else if strings.Contains(sel.name, "Midnight Blue") {
+						m.currentScheme = 5
+						initColors(colorSchemes[5])
+					}
+					m.vp.SetContent("Color scheme changed to " + sel.name + "! Press Tab to switch tabs and see the changes.")
+				}
 			}
 			return m, cmd
 		case "page_up":
@@ -598,15 +717,15 @@ func (m model) View() string {
 
 		// Create panels with explicit dimensions - simple and stable
 		// Add visual feedback for focused pane
-		leftBorderColor := pink
-		rightBorderColor := pink
+		leftBorderColor := currentColors.primary
+		rightBorderColor := currentColors.primary
 		if m.activeTab == 0 {
 			if m.focus == focusList {
-				leftBorderColor = purple // Highlight focused pane
+				leftBorderColor = currentColors.accent // Highlight focused pane
 				rightBorderColor = lipgloss.Color("244") // Dim unfocused pane
 			} else {
 				leftBorderColor = lipgloss.Color("244") // Dim unfocused pane
-				rightBorderColor = purple // Highlight focused pane
+				rightBorderColor = currentColors.accent // Highlight focused pane
 			}
 		}
 
@@ -628,7 +747,48 @@ func (m model) View() string {
 
 		// Simple join - no Place() complications
 		body = lipgloss.JoinHorizontal(lipgloss.Top, leftPanel, rightPanel)
+	} else if m.activeTab == 1 {
+		// Options tab - similar layout to Scripts tab but with options list
+		leftPanelWidth := (m.width / 3) - 2
+		rightPanelWidth := ((m.width * 2) / 3) - 2
+		panelHeight := m.height - 10
+
+		// Options title
+		optionsTitle := "Color Schemes"
+		
+		leftContent := optionsTitle + "\n" + m.list.View()
+		rightContent := m.vp.View()
+
+		// Focus highlighting for Options tab
+		leftBorderColor := currentColors.primary
+		rightBorderColor := currentColors.primary
+		if m.focus == focusList {
+			leftBorderColor = currentColors.accent
+			rightBorderColor = lipgloss.Color("244")
+		} else {
+			leftBorderColor = lipgloss.Color("244")
+			rightBorderColor = currentColors.accent
+		}
+
+		leftPanel := lipgloss.NewStyle().
+			Border(lipgloss.NormalBorder()).
+			BorderForeground(leftBorderColor).
+			Width(leftPanelWidth).
+			Height(panelHeight).
+			Padding(1, 2).
+			Render(leftContent)
+
+		rightPanel := lipgloss.NewStyle().
+			Border(lipgloss.NormalBorder()).
+			BorderForeground(rightBorderColor).
+			Width(rightPanelWidth).
+			Height(panelHeight).
+			Padding(1, 2).
+			Render(rightContent)
+
+		body = lipgloss.JoinHorizontal(lipgloss.Top, leftPanel, rightPanel)
 	} else {
+		// About tab
 		grey := lipgloss.Color("244")
 		aboutStyle := lipgloss.NewStyle().
 			Border(lipgloss.NormalBorder()).
@@ -642,7 +802,7 @@ func (m model) View() string {
 		)
 	}
 
-	footer := lipgloss.NewStyle().Foreground(pink).MarginTop(1).Align(lipgloss.Center).Render("Tab/Shift+Tab Switch Tabs • ← → Navigate Dirs • ↑↓ Select/Scroll • Ctrl+← Ctrl+→ Switch Panes • r Run Script • q Quit")
+	footer := lipgloss.NewStyle().Foreground(currentColors.primary).MarginTop(1).Align(lipgloss.Center).Render("Tab/Shift+Tab Switch Tabs • ← → Navigate Dirs • ↑↓ Select/Scroll • Ctrl+← Ctrl+→ Switch Panes • r Run Script • q Quit")
 
 	if m.activeTab == 0 {
 		return lipgloss.JoinVertical(lipgloss.Left,
@@ -667,9 +827,9 @@ func (d scriptDelegate) Render(w io.Writer, m list.Model, index int, item list.I
 	}
 	var style lipgloss.Style
 	if strings.HasSuffix(s.name, "/") {
-		style = lipgloss.NewStyle().Foreground(purple)
+		style = lipgloss.NewStyle().Foreground(currentColors.secondary)
 	} else {
-		style = lipgloss.NewStyle().Foreground(pink)
+		style = lipgloss.NewStyle().Foreground(currentColors.primary)
 	}
 	if index == m.Index() {
 		style = style.Bold(true).Underline(true)
@@ -680,6 +840,26 @@ func (d scriptDelegate) Render(w io.Writer, m list.Model, index int, item list.I
 func (d scriptDelegate) Height() int               { return 1 }
 func (d scriptDelegate) Spacing() int              { return 0 }
 func (d scriptDelegate) Update(msg tea.Msg, m *list.Model) tea.Cmd { return nil }
+
+type optionsDelegate struct{}
+
+func (d optionsDelegate) Render(w io.Writer, m list.Model, index int, item list.Item) {
+	o, ok := item.(optionItem)
+	if !ok {
+		return
+	}
+	var style lipgloss.Style
+	if index == m.Index() {
+		style = lipgloss.NewStyle().Foreground(currentColors.accent).Bold(true).Underline(true)
+	} else {
+		style = lipgloss.NewStyle().Foreground(currentColors.primary)
+	}
+	fmt.Fprint(w, style.Render("• "+o.name))
+}
+
+func (d optionsDelegate) Height() int               { return 1 }
+func (d optionsDelegate) Spacing() int              { return 0 }
+func (d optionsDelegate) Update(msg tea.Msg, m *list.Model) tea.Cmd { return nil }
 
 func isWindows() bool {
 	return runtime.GOOS == "windows"
@@ -712,14 +892,32 @@ func main() {
 		os.Exit(1)
 	}
 
-	tabs := []string{"Scripts", "About"}
+	tabs := []string{"Scripts", "Options", "About"}
 	scriptItems := getScriptItems(scriptbinPath)
 	cache := newScriptCache()
+
+	// Initialize with default color scheme
+	initColors(colorSchemes[0])
+
+	// Create options items
+	optionsItems := make([]list.Item, len(colorSchemes))
+	for i, scheme := range colorSchemes {
+		optionsItems[i] = optionItem{
+			name:        scheme.name,
+			description: "Apply this color scheme",
+			action:      "color_scheme",
+		}
+	}
 
 	listModel := list.New(scriptItems, scriptDelegate{}, 0, 0)
 	listModel.Title = "" // Remove the "Scripts" title
 	listModel.SetShowHelp(false)
 	listModel.SetFilteringEnabled(false)
+
+	optionsModel := list.New(optionsItems, optionsDelegate{}, 0, 0)
+	optionsModel.Title = ""
+	optionsModel.SetShowHelp(false)
+	optionsModel.SetFilteringEnabled(false)
 
 	vp := viewport.New(0, 0)
 	vp.SetContent("Select a script to preview...")
@@ -735,15 +933,18 @@ func main() {
 	}
 
 	m := model{
-		list:        listModel,
-		vp:          vp,
-		tabs:        tabs,
-		scriptItems: scriptItems,
-		activeTab:   0,
-		focus:       focusList, // Initialize focus to the list pane
-		currentPath: scriptbinPath,
-		parentPaths: []parentNav{},
-		cache:       cache,
+		list:          listModel,
+		vp:            vp,
+		tabs:          tabs,
+		scriptItems:   scriptItems,
+		activeTab:     0,
+		focus:         focusList, // Initialize focus to the list pane
+		currentPath:   scriptbinPath,
+		parentPaths:   []parentNav{},
+		cache:         cache,
+		currentScheme: 0, // Start with first color scheme
+		optionsList:   optionsModel,
+		optionsItems:  optionsItems,
 	}
 
 	if err := tea.NewProgram(m,

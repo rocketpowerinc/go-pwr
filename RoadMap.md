@@ -45,6 +45,7 @@
 - Ask it for error checking and dubugging
 - Ask it to explain the main.go line by line
 - Ask it for cool new features, but that will also work on a ubuntu server
+- Is script getting to long should I break it out?
 
 # To Do
 - Reupload go-pwr to github once all commits are complete so it does not look so sloppy
