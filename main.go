@@ -808,7 +808,7 @@ func (m model) View() string {
 		panelHeight := m.height - 10
 
 		// Options title
-		optionsTitle := "Option Categories"
+		optionsTitle := "Themes"
 		
 		leftContent := optionsTitle + "\n" + m.list.View()
 		
@@ -914,7 +914,7 @@ func (d optionsDelegate) Render(w io.Writer, m list.Model, index int, item list.
 	} else {
 		style = lipgloss.NewStyle().Foreground(currentColors.primary)
 	}
-	fmt.Fprint(w, style.Render("• "+o.name))
+	fmt.Fprint(w, style.Render(o.name))
 }
 
 func (d optionsDelegate) Height() int               { return 1 }
@@ -934,7 +934,7 @@ func (d categoryDelegate) Render(w io.Writer, m list.Model, index int, item list
 	} else {
 		style = lipgloss.NewStyle().Foreground(currentColors.primary)
 	}
-	fmt.Fprint(w, style.Render("▶ "+oc.name))
+	fmt.Fprint(w, style.Render(oc.name))
 }
 
 func (d categoryDelegate) Height() int               { return 1 }
@@ -1002,16 +1002,22 @@ func main() {
 	listModel.Title = "" // Remove the "Scripts" title
 	listModel.SetShowHelp(false)
 	listModel.SetFilteringEnabled(false)
+	listModel.SetShowStatusBar(false)
+	listModel.SetShowPagination(false)
 
 	optionsCategoryModel := list.New(optionCategories, categoryDelegate{}, 0, 0)
 	optionsCategoryModel.Title = ""
 	optionsCategoryModel.SetShowHelp(false)
 	optionsCategoryModel.SetFilteringEnabled(false)
+	optionsCategoryModel.SetShowStatusBar(false)
+	optionsCategoryModel.SetShowPagination(false)
 
 	optionsRightModel := list.New(colorSchemeItems, optionsDelegate{}, 0, 0)
 	optionsRightModel.Title = ""
 	optionsRightModel.SetShowHelp(false)
 	optionsRightModel.SetFilteringEnabled(false)
+	optionsRightModel.SetShowStatusBar(false)
+	optionsRightModel.SetShowPagination(false)
 
 	vp := viewport.New(0, 0)
 	vp.SetContent("Select a script to preview...")
