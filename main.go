@@ -36,6 +36,16 @@ func (o optionItem) Title() string       { return o.name }
 func (o optionItem) Description() string { return o.description }
 func (o optionItem) FilterValue() string { return o.name }
 
+type optionCategory struct {
+	name        string
+	description string
+	category    string
+}
+
+func (oc optionCategory) Title() string       { return oc.name }
+func (oc optionCategory) Description() string { return oc.description }
+func (oc optionCategory) FilterValue() string { return oc.name }
+
 type focusArea int
 
 const (
@@ -134,20 +144,24 @@ func (sc *scriptCache) clear() {
 }
 
 type model struct {
-	list           list.Model
-	vp             viewport.Model
-	width          int
-	height         int
-	activeTab      int
-	tabs           []string
-	scriptItems    []list.Item
-	focus          focusArea
-	currentPath    string
-	parentPaths    []parentNav
-	cache          *scriptCache
-	currentScheme  int
-	optionsList    list.Model
-	optionsItems   []list.Item
+	list              list.Model
+	optionsRightList  list.Model
+	vp                viewport.Model
+	width             int
+	height            int
+	activeTab         int
+	tabs              []string
+	scriptItems       []list.Item
+	focus             focusArea
+	currentPath       string
+	parentPaths       []parentNav
+	cache             *scriptCache
+	currentScheme     int
+	optionsList       list.Model
+	optionsItems      []list.Item
+	optionCategories  []list.Item
+	colorSchemeItems  []list.Item
+	selectedCategory  string
 }
 
 type outputMsg string
@@ -344,6 +358,7 @@ func (m *model) setSizes() {
 	}
 
 	m.list.SetSize(leftContentWidth, m.height-10)
+	m.optionsRightList.SetSize(rightContentWidth, m.height-10)
 	m.vp.Width = rightContentWidth
 	m.vp.Height = m.height - 10
 }
@@ -418,8 +433,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			} else if m.activeTab == 1 {
 				// Options tab
-				m.list.SetItems(m.optionsItems)
-				m.vp.SetContent("Select a color scheme to apply it instantly!")
+				m.list.SetItems(m.optionCategories)
+				m.selectedCategory = ""
+				m.vp.SetContent("Select an option category from the left to see available settings.")
 			} else {
 				// About tab
 				m.vp.SetContent("A cross-platform script browser powered by RocketPowerInc.")
@@ -440,8 +456,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			} else if m.activeTab == 1 {
 				// Options tab
-				m.list.SetItems(m.optionsItems)
-				m.vp.SetContent("Select a color scheme to apply it instantly!")
+				m.list.SetItems(m.optionCategories)
+				m.selectedCategory = ""
+				m.vp.SetContent("Select an option category from the left to see available settings.")
 			} else {
 				// About tab
 				m.vp.SetContent("A cross-platform script browser powered by RocketPowerInc.")
@@ -475,60 +492,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// Alternative for Mac: Switch focus to preview pane (in Scripts and Options tabs)
 			if m.activeTab == 0 || m.activeTab == 1 {
 				m.focus = focusPreview
-			}
-		case "r":
-			if m.activeTab == 0 && m.focus == focusList {
-				m.list, _ = m.list.Update(msg) // Ensure list state is updated
-				if sel, ok := m.list.SelectedItem().(scriptItem); ok {
-					if !strings.HasSuffix(sel.name, "/") {
-						m.vp.SetContent("Running script in a new terminal window...")
-						go func() {
-							var cmd *exec.Cmd
-							if isWindows() {
-								if strings.HasSuffix(sel.name, ".ps1") {
-									cmd = exec.Command("cmd", "/C", "start", "powershell", "-NoExit", "-Command", "Clear-Host; "+sel.path+"; Write-Host ''; Read-Host 'Press Enter to exit'")
-								} else {
-									cmd = exec.Command("cmd", "/C", "start", "cmd", "/K", "cls && bash -l "+sel.path+" & pause")
-								}
-							} else if isMac() {
-								// Improved macOS terminal handling
-								scriptCmd := sel.path
-								if strings.HasSuffix(sel.name, ".ps1") {
-									scriptCmd = "pwsh " + sel.path
-								} else {
-									scriptCmd = "bash " + sel.path
-								}
-								osaCmd := fmt.Sprintf(`tell application "Terminal"
-    do script "clear; %s; echo; read -n 1 -s -r -p 'Press any key to exit...'"
-    activate
-end tell`, scriptCmd)
-								cmd = exec.Command("osascript", "-e", osaCmd)
-							} else if isLinux() {
-								// Linux: try common terminals
-								term := ""
-								for _, candidate := range []string{"gnome-terminal", "konsole", "x-terminal-emulator"} {
-									if _, err := exec.LookPath(candidate); err == nil {
-										term = candidate
-										break
-									}
-								}
-								if term == "" {
-									fmt.Println("No supported terminal emulator found.")
-									return
-								}
-								if strings.HasSuffix(sel.name, ".ps1") {
-									cmd = exec.Command(term, "--", "bash", "-l", "-c", "clear; pwsh "+sel.path+"; echo; read -p 'Press Enter to exit'")
-								} else {
-									cmd = exec.Command(term, "--", "bash", "-l", "-c", "clear; bash "+sel.path+"; echo; read -p 'Press Enter to exit'")
-								}
-							}
-							err := cmd.Start()
-							if err != nil {
-								fmt.Printf("\nError opening terminal: %v\n", err)
-							}
-						}()
-					}
-				}
 			}
 		case "left":
 			// Go back to parent directory if possible
@@ -598,6 +561,8 @@ end tell`, scriptCmd)
 				m.list, cmd = m.list.Update(msg)
 			} else if m.focus == focusPreview && m.activeTab == 0 {
 				m.vp.LineUp(1)
+			} else if m.focus == focusPreview && m.activeTab == 1 {
+				m.optionsRightList, cmd = m.optionsRightList.Update(msg)
 			}
 			return m, cmd
 		case "down":
@@ -619,31 +584,119 @@ end tell`, scriptCmd)
 				m.list, cmd = m.list.Update(msg)
 			} else if m.focus == focusPreview && m.activeTab == 0 {
 				m.vp.LineDown(1)
+			} else if m.focus == focusPreview && m.activeTab == 1 {
+				m.optionsRightList, cmd = m.optionsRightList.Update(msg)
 			}
 			return m, cmd
 		case "enter":
-			if m.activeTab == 1 && m.focus == focusList {
-				if sel, ok := m.list.SelectedItem().(optionItem); ok {
-					if strings.Contains(sel.name, "Rocket Pink") {
-						m.currentScheme = 0
-						initColors(colorSchemes[0])
-					} else if strings.Contains(sel.name, "Ocean Breeze") {
-						m.currentScheme = 1
-						initColors(colorSchemes[1])
-					} else if strings.Contains(sel.name, "Forest Night") {
-						m.currentScheme = 2
-						initColors(colorSchemes[2])
-					} else if strings.Contains(sel.name, "Sunset Glow") {
-						m.currentScheme = 3
-						initColors(colorSchemes[3])
-					} else if strings.Contains(sel.name, "Purple Haze") {
-						m.currentScheme = 4
-						initColors(colorSchemes[4])
-					} else if strings.Contains(sel.name, "Midnight Blue") {
-						m.currentScheme = 5
-						initColors(colorSchemes[5])
+			if m.activeTab == 0 && m.focus == focusList {
+				// Scripts tab - run script or navigate directory
+				if sel, ok := m.list.SelectedItem().(scriptItem); ok {
+					if strings.HasSuffix(sel.name, "/") {
+						// Navigate into directory
+						m.parentPaths = append(m.parentPaths, parentNav{path: m.currentPath, index: m.list.Index()})
+						m.currentPath = sel.path
+						m.scriptItems = getScriptItems(sel.path)
+						m.list.SetItems(m.scriptItems)
+						m.list.ResetSelected()
+						// Show preview for first item if it's a script
+						if len(m.scriptItems) > 0 {
+							if first, ok := m.scriptItems[0].(scriptItem); ok {
+								if strings.HasSuffix(first.name, ".sh") || strings.HasSuffix(first.name, ".ps1") {
+									ext := filepath.Ext(first.path)
+									m.vp.SetContent(highlightScript(readScript(first.path, m.cache), ext))
+								} else {
+									m.vp.SetContent("Select a script to preview...")
+								}
+							}
+						} else {
+							m.vp.SetContent("Select a script to preview...")
+						}
+						return m, nil
+					} else {
+						// Run script
+						m.vp.SetContent("Running script in a new terminal window...")
+						go func() {
+							var cmd *exec.Cmd
+							if isWindows() {
+								if strings.HasSuffix(sel.name, ".ps1") {
+									cmd = exec.Command("cmd", "/C", "start", "powershell", "-NoExit", "-Command", "Clear-Host; "+sel.path+"; Write-Host ''; Read-Host 'Press Enter to exit'")
+								} else {
+									cmd = exec.Command("cmd", "/C", "start", "cmd", "/K", "cls && bash -l "+sel.path+" & pause")
+								}
+							} else if isMac() {
+								// Improved macOS terminal handling
+								scriptCmd := sel.path
+								if strings.HasSuffix(sel.name, ".ps1") {
+									scriptCmd = "pwsh " + sel.path
+								} else {
+									scriptCmd = "bash " + sel.path
+								}
+								osaCmd := fmt.Sprintf(`tell application "Terminal"
+    do script "clear; %s; echo; read -n 1 -s -r -p 'Press any key to exit...'"
+    activate
+end tell`, scriptCmd)
+								cmd = exec.Command("osascript", "-e", osaCmd)
+							} else if isLinux() {
+								// Linux: try common terminals
+								term := ""
+								for _, candidate := range []string{"gnome-terminal", "konsole", "x-terminal-emulator"} {
+									if _, err := exec.LookPath(candidate); err == nil {
+										term = candidate
+										break
+									}
+								}
+								if term == "" {
+									fmt.Println("No supported terminal emulator found.")
+									return
+								}
+								if strings.HasSuffix(sel.name, ".ps1") {
+									cmd = exec.Command(term, "--", "bash", "-l", "-c", "clear; pwsh "+sel.path+"; echo; read -p 'Press Enter to exit'")
+								} else {
+									cmd = exec.Command(term, "--", "bash", "-l", "-c", "clear; bash "+sel.path+"; echo; read -p 'Press Enter to exit'")
+								}
+							}
+							err := cmd.Start()
+							if err != nil {
+								fmt.Printf("\nError opening terminal: %v\n", err)
+							}
+						}()
 					}
-					m.vp.SetContent("Color scheme changed to " + sel.name + "! Press Tab to switch tabs and see the changes.")
+				}
+			} else if m.activeTab == 1 && m.focus == focusList {
+				// Options tab - select category
+				if sel, ok := m.list.SelectedItem().(optionCategory); ok {
+					m.selectedCategory = sel.category
+					if sel.category == "color_schemes" {
+						m.optionsRightList.SetItems(m.colorSchemeItems)
+						m.vp.SetContent("Select a color scheme from the list on the left to apply it instantly!")
+					}
+				}
+			} else if m.activeTab == 1 && m.focus == focusPreview {
+				// Options tab - apply selected option
+				if m.selectedCategory == "color_schemes" {
+					if sel, ok := m.optionsRightList.SelectedItem().(optionItem); ok {
+						if strings.Contains(sel.name, "Rocket Pink") {
+							m.currentScheme = 0
+							initColors(colorSchemes[0])
+						} else if strings.Contains(sel.name, "Ocean Breeze") {
+							m.currentScheme = 1
+							initColors(colorSchemes[1])
+						} else if strings.Contains(sel.name, "Forest Night") {
+							m.currentScheme = 2
+							initColors(colorSchemes[2])
+						} else if strings.Contains(sel.name, "Sunset Glow") {
+							m.currentScheme = 3
+							initColors(colorSchemes[3])
+						} else if strings.Contains(sel.name, "Purple Haze") {
+							m.currentScheme = 4
+							initColors(colorSchemes[4])
+						} else if strings.Contains(sel.name, "Arctic Frost") {
+							m.currentScheme = 5
+							initColors(colorSchemes[5])
+						}
+						m.vp.SetContent("Color scheme changed to " + sel.name + "! Press Tab to switch tabs and see the changes.")
+					}
 				}
 			}
 			return m, cmd
@@ -669,6 +722,7 @@ end tell`, scriptCmd)
 	}
 
 	m.list, _ = m.list.Update(msg)
+	m.optionsRightList, _ = m.optionsRightList.Update(msg)
 	m.vp, _ = m.vp.Update(msg)
 	return m, cmd
 }
@@ -748,16 +802,22 @@ func (m model) View() string {
 		// Simple join - no Place() complications
 		body = lipgloss.JoinHorizontal(lipgloss.Top, leftPanel, rightPanel)
 	} else if m.activeTab == 1 {
-		// Options tab - similar layout to Scripts tab but with options list
+		// Options tab - similar layout to Scripts tab but with categories and options
 		leftPanelWidth := (m.width / 3) - 2
 		rightPanelWidth := ((m.width * 2) / 3) - 2
 		panelHeight := m.height - 10
 
 		// Options title
-		optionsTitle := "Color Schemes"
+		optionsTitle := "Option Categories"
 		
 		leftContent := optionsTitle + "\n" + m.list.View()
-		rightContent := m.vp.View()
+		
+		var rightContent string
+		if m.selectedCategory == "color_schemes" {
+			rightContent = m.optionsRightList.View()
+		} else {
+			rightContent = m.vp.View()
+		}
 
 		// Focus highlighting for Options tab
 		leftBorderColor := currentColors.primary
@@ -802,7 +862,7 @@ func (m model) View() string {
 		)
 	}
 
-	footer := lipgloss.NewStyle().Foreground(currentColors.primary).MarginTop(1).Align(lipgloss.Center).Render("Tab/Shift+Tab Switch Tabs • ← → Navigate Dirs • ↑↓ Select/Scroll • Ctrl+← Ctrl+→ Switch Panes • r Run Script • q Quit")
+	footer := lipgloss.NewStyle().Foreground(currentColors.primary).MarginTop(1).Align(lipgloss.Center).Render("Tab/Shift+Tab Switch Tabs • ← → Navigate Dirs • ↑↓ Select/Scroll • Ctrl+← Ctrl+→ Switch Panes • Enter Run/Select • q Quit")
 
 	if m.activeTab == 0 {
 		return lipgloss.JoinVertical(lipgloss.Left,
@@ -861,6 +921,26 @@ func (d optionsDelegate) Height() int               { return 1 }
 func (d optionsDelegate) Spacing() int              { return 0 }
 func (d optionsDelegate) Update(msg tea.Msg, m *list.Model) tea.Cmd { return nil }
 
+type categoryDelegate struct{}
+
+func (d categoryDelegate) Render(w io.Writer, m list.Model, index int, item list.Item) {
+	oc, ok := item.(optionCategory)
+	if !ok {
+		return
+	}
+	var style lipgloss.Style
+	if index == m.Index() {
+		style = lipgloss.NewStyle().Foreground(currentColors.accent).Bold(true).Underline(true)
+	} else {
+		style = lipgloss.NewStyle().Foreground(currentColors.primary)
+	}
+	fmt.Fprint(w, style.Render("▶ "+oc.name))
+}
+
+func (d categoryDelegate) Height() int               { return 1 }
+func (d categoryDelegate) Spacing() int              { return 0 }
+func (d categoryDelegate) Update(msg tea.Msg, m *list.Model) tea.Cmd { return nil }
+
 func isWindows() bool {
 	return runtime.GOOS == "windows"
 }
@@ -899,10 +979,19 @@ func main() {
 	// Initialize with default color scheme
 	initColors(colorSchemes[0])
 
-	// Create options items
-	optionsItems := make([]list.Item, len(colorSchemes))
+	// Create option categories
+	optionCategories := make([]list.Item, 0)
+	optionCategories = append(optionCategories, optionCategory{
+		name:        "Color Schemes",
+		description: "Change the application's color theme",
+		category:    "color_schemes",
+	})
+	// Add more categories here in the future
+
+	// Create color scheme items
+	colorSchemeItems := make([]list.Item, len(colorSchemes))
 	for i, scheme := range colorSchemes {
-		optionsItems[i] = optionItem{
+		colorSchemeItems[i] = optionItem{
 			name:        scheme.name,
 			description: "Apply this color scheme",
 			action:      "color_scheme",
@@ -914,10 +1003,15 @@ func main() {
 	listModel.SetShowHelp(false)
 	listModel.SetFilteringEnabled(false)
 
-	optionsModel := list.New(optionsItems, optionsDelegate{}, 0, 0)
-	optionsModel.Title = ""
-	optionsModel.SetShowHelp(false)
-	optionsModel.SetFilteringEnabled(false)
+	optionsCategoryModel := list.New(optionCategories, categoryDelegate{}, 0, 0)
+	optionsCategoryModel.Title = ""
+	optionsCategoryModel.SetShowHelp(false)
+	optionsCategoryModel.SetFilteringEnabled(false)
+
+	optionsRightModel := list.New(colorSchemeItems, optionsDelegate{}, 0, 0)
+	optionsRightModel.Title = ""
+	optionsRightModel.SetShowHelp(false)
+	optionsRightModel.SetFilteringEnabled(false)
 
 	vp := viewport.New(0, 0)
 	vp.SetContent("Select a script to preview...")
@@ -933,18 +1027,22 @@ func main() {
 	}
 
 	m := model{
-		list:          listModel,
-		vp:            vp,
-		tabs:          tabs,
-		scriptItems:   scriptItems,
-		activeTab:     0,
-		focus:         focusList, // Initialize focus to the list pane
-		currentPath:   scriptbinPath,
-		parentPaths:   []parentNav{},
-		cache:         cache,
-		currentScheme: 0, // Start with first color scheme
-		optionsList:   optionsModel,
-		optionsItems:  optionsItems,
+		list:              listModel,
+		optionsRightList:  optionsRightModel,
+		vp:                vp,
+		tabs:              tabs,
+		scriptItems:       scriptItems,
+		activeTab:         0,
+		focus:             focusList, // Initialize focus to the list pane
+		currentPath:       scriptbinPath,
+		parentPaths:       []parentNav{},
+		cache:             cache,
+		currentScheme:     0, // Start with first color scheme
+		optionsList:       optionsCategoryModel,
+		optionsItems:      colorSchemeItems,
+		optionCategories:  optionCategories,
+		colorSchemeItems:  colorSchemeItems,
+		selectedCategory:  "",
 	}
 
 	if err := tea.NewProgram(m,
