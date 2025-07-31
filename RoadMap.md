@@ -47,9 +47,6 @@
 - Ask it for cool new features, but that will also work on a ubuntu server
 - Is script getting to long should I break it out?
 
-# To Do
-- Reupload go-pwr to github once all commits are complete so it does not look so sloppy
-
 # AI Ideas
 
 Search & Filtering Features
@@ -65,7 +62,7 @@ Enhanced Script Management
 - **Dry Run Mode**: Preview what a script would do without running it
 
 Terminal Integration
-- **Multiple Repo Support**: Switch between different script repos (work, personal, etc.)
+- **Multiple Repo Support**: Switch between different script repos (go-pwr repo being the default)
 - **Script Arguments**: Pass arguments to scripts before running
 - **Environment Variables**: Set env vars for script execution
 - **Working Directory**: Choose which directory to run scripts from
