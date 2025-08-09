@@ -1,118 +1,133 @@
 # Go-PWR Application
 
-## Overview
+## ✨ Overview
 
-`go-pwr` is a simple command-line application built using the Go programming language. It utilizes the Bubble Tea framework to create an interactive user interface.
+**`go-pwr`** is a cross-platform launcher for your personal automation scripts. Built with Go and powered by [Charm’s](https://github.com/charmbracelet) [Bubble Tea framework](https://github.com/charmbracelet/bubbletea), it delivers a sleek, interactive TUI for browsing, previewing, and running  bash and powershell scripts across Windows, macOS, Linux, and server environments. On first run, it automatically clones my “scriptbin” repository into a local  directory along with the `go-pwr` TUI, making script access and management simple and seamless.
 
-The application automatically clones the [scriptbin repository](https://github.com/rocketpowerinc/scriptbin) to a `scriptbin` directory alongside the go-pwr installation for easy access and management.
+---
 
-## Installation
-To install the Go Power application, ensure that you have Go installed on your computer. You can download it from the official Go website: https://golang.org/dl/ or use a command below.
+## 📥 Installation
 
-- Windows
-    - `winget install -e --id GoLang.Go`
-- MacOS
-    - `brew install go`
-- Ubuntu
-    - https://www.youtube.com/watch?v=Ce1oxMvINVE&list=WL&index=16
-    - `sudo snap install go --classic`
-    - Bashrc `export PATH=/snap/bin:$PATH`
+First, install Go:
+
+- **Windows:**
+
+    `winget install -e --id GoLang.Go`
+
+- **macOS:**
+
+    `brew install go`
+
+- **Ubuntu:**
+
+    `sudo snap install go --classic`
+
+    Add to PATH if needed:
+
+    `export PATH=/snap/bin:$PATH`
 
 
-Once Go is installed, set your GOPATH correctly. Then, run the following command in your terminal:
+Then install `go-pwr`:
 
 ```bash
 go install -v github.com/rocketpowerinc/go-pwr@latest
+
 ```
 
-This command will compile the application and place the executable in your `$GOPATH/bin` directory.
+---
 
-Might have to clean cache first `go clean -modcache`
+## 🚀 Usage
 
-If still not getting the latest changes use
+After installation, you can run the app from any directory:
 
 ```bash
-[ -d go-pwr ] && rm -rf go-pwr
-rm -f ~/go/bin/go-pwr
-git clone https://github.com/rocketpowerinc/go-pwr.git
-cd go-pwr
-go install
-```
-
-# Aliases
-
-- Windows
+go-pwr
 
 ```
+
+Or directly:
+
+```bash
+~/go/bin/go-pwr
+
+```
+
+To ensure it's always in your path:
+
+- **Linux (Bash):**
+
+    ```bash
+    echo 'export PATH="$HOME/go/bin:$PATH"' >> ~/.bashrc && source ~/.bashrc
+
+    ```
+
+- **macOS (Zsh):**
+
+    ```bash
+    echo 'export PATH="$HOME/go/bin:$PATH"' >> ~/.zshrc && source ~/.zshrc
+
+    ```
+---
+
+## ⚡️ Dev Aliases
+
+### Windows (PowerShell)
+
+```powershell
 $gooAlias = @"
 function goo {
     Remove-Item -Recurse -Force go-pwr -ErrorAction SilentlyContinue
-    Remove-Item -Force `"$HOME\go\bin\go-pwr.exe`" -ErrorAction SilentlyContinue
-    git clone https://github.com/rocketpowerinc/go-pwr.git
+    Remove-Item -Force `"$HOME\\go\\bin\\go-pwr.exe`" -ErrorAction SilentlyContinue
+    git clone <https://github.com/rocketpowerinc/go-pwr.git>
     Set-Location go-pwr
     go install
-    & "$env:USERPROFILE\go\bin\go-pwr.exe"
+    & "$env:USERPROFILE\\go\\bin\\go-pwr.exe"
 }
 "@
-
 $gooAlias | Out-File -Append -Encoding UTF8 $PROFILE
-```
-
-- Linux
 
 ```
+
+### Linux (Bash)
+
+```bash
 cat << 'EOF' >> ~/.bashrc
 # Alias to reinstall go-pwr
 alias goo='
-  rm -rf go-pwr && \
-  rm -f ~/go/bin/go-pwr && \
-  git clone https://github.com/rocketpowerinc/go-pwr.git && \
-  cd go-pwr && \
-  go install && \
+  rm -rf go-pwr && \\
+  rm -f ~/go/bin/go-pwr && \\
+  git clone <https://github.com/rocketpowerinc/go-pwr.git> && \\
+  cd go-pwr && \\
+  go install && \\
   ~/go/bin/go-pwr'
 EOF
-```
-
-- Mac
 
 ```
+
+### macOS (Zsh)
+
+```bash
 cat << 'EOF' >> ~/.zshrc
 # Alias to reinstall go-pwr
 alias goo='
-  rm -rf go-pwr && \
-  rm -f ~/go/bin/go-pwr && \
-  git clone https://github.com/rocketpowerinc/go-pwr.git && \
-  cd go-pwr && \
-  go install && \
+  rm -rf go-pwr && \\
+  rm -f ~/go/bin/go-pwr && \\
+  git clone <https://github.com/rocketpowerinc/go-pwr.git> && \\
+  cd go-pwr && \\
+  go install && \\
   ~/go/bin/go-pwr'
 EOF
+
 ```
 
-- Then Source
-  - `. $PROFILE`
-  - `source ~/.bashrc`
-  - `source ~/.zshrc`
+Then reload your shell:
 
-## Usage/Export
+- `. $PROFILE`
+- `source ~/.bashrc`
+- `source ~/.zshrc`
 
-After installation, you can run the application from any directory by executing:
+---
 
-`go-pwr` or call it directly `~/go/bin/go-pwr`
+## 🐞 Known Issues / Bugs
 
-Linux - Add to Bash Path
-`echo 'export PATH="$HOME/go/bin:$PATH"' >> ~/.bashrc && source ~/.bashrc`
-Mac - Add to ZSH Path
-`echo 'export PATH="$HOME/go/bin:$PATH"' >> ~/.zshrc && source ~/.zshrc`
-
-
-## Benefits of having scripts in the separate scriptbin repo
-- End user never has to update go-pwr because all scripts will be fresh from script bin all the time
-- I can utilise scriptbin repo in other projects
-
-## Contributing
-
-Contributions are welcome! If you have suggestions for improvements or new features, feel free to open an issue or submit a pull request.
-
-### License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+- ⚠️ macOS default Terminal has issues with borders/syntax in `gum`; use **iTerm2** instead
