@@ -30,8 +30,15 @@ First, install Go:
 Then install `go-pwr`:
 
 ```bash
-go install -v github.com/rocketpowerinc/go-pwr@latest
+go install -v github.com/rocketpowerinc/go-pwr/cmd/go-pwr@latest
+```
 
+Or build from source:
+
+```bash
+git clone https://github.com/rocketpowerinc/go-pwr.git
+cd go-pwr
+make install
 ```
 
 ---
@@ -69,6 +76,35 @@ To ensure it's always in your path:
     ```
 ---
 
+## 🛠️ Development
+
+This project follows Go best practices with a clean, modular architecture:
+
+```
+go-pwr/
+├── cmd/go-pwr/        # Application entry point
+├── internal/          # Private application code
+│   ├── app/           # Core application logic
+│   ├── config/        # Configuration management
+│   ├── git/           # Git operations
+│   ├── scripts/       # Script discovery and management
+│   └── ui/            # User interface components
+├── pkg/platform/      # Platform-specific utilities
+└── Makefile          # Build automation
+```
+
+### Build Commands
+
+- `make build` - Build the application
+- `make install` - Install to GOPATH/bin
+- `make dev` - Build and run in development mode
+- `make test` - Run tests
+- `make clean` - Clean build artifacts
+
+See `ARCHITECTURE.md` for detailed documentation.
+
+---
+
 ## ⚡️ Dev Aliases
 
 ### Windows (PowerShell)
@@ -78,9 +114,9 @@ $gooAlias = @"
 function goo {
     Remove-Item -Recurse -Force go-pwr -ErrorAction SilentlyContinue
     Remove-Item -Force `"$HOME\\go\\bin\\go-pwr.exe`" -ErrorAction SilentlyContinue
-    git clone <https://github.com/rocketpowerinc/go-pwr.git>
+    git clone https://github.com/rocketpowerinc/go-pwr.git
     Set-Location go-pwr
-    go install
+    make install
     & "$env:USERPROFILE\\go\\bin\\go-pwr.exe"
 }
 "@
@@ -96,9 +132,9 @@ cat << 'EOF' >> ~/.bashrc
 alias goo='
   rm -rf go-pwr && \\
   rm -f ~/go/bin/go-pwr && \\
-  git clone <https://github.com/rocketpowerinc/go-pwr.git> && \\
+  git clone https://github.com/rocketpowerinc/go-pwr.git && \\
   cd go-pwr && \\
-  go install && \\
+  make install && \\
   ~/go/bin/go-pwr'
 EOF
 
