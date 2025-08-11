@@ -85,7 +85,9 @@ To ensure it's always in your path:
 
 ```powershell
 $gooAlias = @"
+# Alias to launch latest go-pwr
 function goo {
+    Set-Location $env:USERPROFILE
     Remove-Item -Recurse -Force go-pwr -ErrorAction SilentlyContinue
     Remove-Item -Force `"$HOME\\go\\bin\\go-pwr.exe`" -ErrorAction SilentlyContinue
     git clone https://github.com/rocketpowerinc/go-pwr.git
@@ -103,8 +105,9 @@ $gooAlias | Out-File -Append -Encoding UTF8 $PROFILE
 
 ```bash
 cat << 'EOF' >> ~/.zshrc
-# Alias to reinstall go-pwr
+# Alias to launch latest go-pwr
 alias goo='
+    cd $HOME
     rm -rf go-pwr && \
     rm -f ~/go/bin/go-pwr && \
     git clone https://github.com/rocketpowerinc/go-pwr.git && \
@@ -120,15 +123,18 @@ EOF
 
 ```bash
 cat << 'EOF' >> ~/.bashrc
-# Alias to reinstall go-pwr
-alias goo='
-  rm -rf go-pwr && \\
-  rm -f ~/go/bin/go-pwr && \\
-  git clone https://github.com/rocketpowerinc/go-pwr.git && \\
-  cd go-pwr && \\
-  make install && \\
-  ~/go/bin/go-pwr'
+# Alias to launch latest go-pwr
+goo() {
+  cd $HOME
+  rm -rf go-pwr &&
+  rm -f ~/go/bin/go-pwr &&
+  git clone https://github.com/rocketpowerinc/go-pwr.git &&
+  cd go-pwr &&
+  make install &&
+  ~/go/bin/go-pwr
+}
 EOF
+
 
 ```
 
@@ -276,7 +282,7 @@ set -euo pipefail
 **Pane Switching (when preview is available):**
 - `Ctrl+←` / `Ctrl+→` - Switch between left panel and preview pane
 - `Shift+←` / `Shift+→` - Alternative pane switching
-- `Ctrl+H` / `Ctrl+L` - Vim-style pane switching (works better on some servers)
+- `Ctrl+H` / `Ctrl+L` - Vim-style pane switching (works better on servers)
 
 **Search and Modes:**
 - `Ctrl+F` or `/` - Activate tag-based search
