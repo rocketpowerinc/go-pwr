@@ -145,6 +145,28 @@ Then reload your shell:
 
 ---
 
+## 🖥️ Server Environment Support
+
+**`go-pwr`** works seamlessly on both desktop and server environments:
+
+**Desktop Environments:**
+- Opens scripts in new terminal windows (Windows Terminal, iTerm2, gnome-terminal, etc.)
+- Full GUI experience with syntax highlighting
+
+**Server Environments (Headless/SSH):**
+- Automatically detects server environments (no DISPLAY variable)
+- Uses `tmux` or `screen` sessions to run scripts in separate windows
+- Falls back to direct execution if no terminal multiplexer is available
+- Perfect for remote server management and automation
+
+**Server Usage Tips:**
+- Install `tmux` or `screen` for the best experience: `sudo apt install tmux`
+- Scripts run in named sessions: `tmux list-sessions` to see active sessions
+- Use `Ctrl+B, D` (tmux) or `Ctrl+A, D` (screen) to detach from running scripts
+- Terminal multiplexers allow scripts to continue running even if you disconnect
+
+---
+
 ### 🎨 Syntax Highlighting
 
 `go-pwr` automatically provides beautiful syntax highlighting in script previews using [`bat`](https://github.com/sharkdp/bat) when available. **If `bat` is not installed, the application gracefully falls back to plain text previews with helpful installation instructions.**
@@ -239,5 +261,32 @@ set -euo pipefail
   - Browse one folder at a time
   - Use arrow keys to navigate into/out of directories
   - Traditional file manager experience
+
+---
+
+## ⌨️ Keyboard Shortcuts
+
+**Navigation:**
+- `Tab` / `Shift+Tab` - Switch between tabs (Scripts, Options, About)
+- `Ctrl+Tab` - Alternative tab switching (useful when Tab key is intercepted)
+- `↑` / `↓` - Navigate through lists
+- `←` / `→` - Navigate directories (Directory Mode only)
+- `Enter` - Run script or enter directory
+
+**Pane Switching (when preview is available):**
+- `Ctrl+←` / `Ctrl+→` - Switch between left panel and preview pane
+- `Shift+←` / `Shift+→` - Alternative pane switching (useful on servers where Ctrl+arrows don't work)
+
+**Search and Modes:**
+- `Ctrl+F` or `/` - Activate tag-based search
+- `Ctrl+R` - Toggle between Recursive and Directory viewing modes
+- `Escape` - Cancel search or clear search terms
+
+**Preview Navigation:**
+- `Page Up` / `Page Down` - Scroll through script preview
+- Arrow keys when preview pane is focused
+
+**General:**
+- `q` or `Ctrl+C` - Quit application
 
 ---
