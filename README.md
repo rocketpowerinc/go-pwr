@@ -124,7 +124,7 @@ EOF
 ```bash
 cat << 'EOF' >> ~/.bashrc
 # Alias to launch latest go-pwr
-goo() {
+function goo() {
   cd $HOME
   rm -rf go-pwr &&
   rm -f ~/go/bin/go-pwr &&
