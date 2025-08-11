@@ -482,11 +482,11 @@ func (m Model) renderOptionsTab() string {
 
 // renderAboutTab renders the about tab.
 func (m Model) renderAboutTab() string {
-	grey := lipgloss.Color("244")
 	panelHeight := m.height - 6
 
-	// ASCII art for the logo
-	asciiArt := "   ██████╗  ██████╗  ██████╗██╗  ██╗███████╗████████╗\n" +
+	// ASCII art for the logo - use theme accent color for the logo
+	logoStyle := lipgloss.NewStyle().Foreground(m.theme.Current.Accent).Bold(true)
+	asciiArt := logoStyle.Render("   ██████╗  ██████╗  ██████╗██╗  ██╗███████╗████████╗\n" +
 		"   ██╔══██╗██╔═══██╗██╔════╝██║ ██╔╝██╔════╝╚══██╔══╝\n" +
 		"   ██████╔╝██║   ██║██║     █████╔╝ █████╗     ██║   \n" +
 		"   ██╔══██╗██║   ██║██║     ██╔═██╗ ██╔══╝     ██║   \n" +
@@ -498,14 +498,17 @@ func (m Model) renderAboutTab() string {
 		" ██████╔╝██║   ██║██║ █╗ ██║█████╗  ██████╔╝     ██║██╔██╗ ██║██║     \n" +
 		" ██╔═══╝ ██║   ██║██║███╗██║██╔══╝  ██╔══██╗     ██║██║╚██╗██║██║     \n" +
 		" ██║     ╚██████╔╝╚███╔███╔╝███████╗██║  ██║     ██║██║ ╚████║╚██████╗\n" +
-		" ╚═╝      ╚═════╝  ╚══╝╚══╝ ╚══════╝╚═╝  ╚═╝     ╚═╝╚═╝  ╚═══╝ ╚═════╝"
+		" ╚═╝      ╚═════╝  ╚══╝╚══╝ ╚══════╝╚═╝  ╚═╝     ╚═╝╚═╝  ╚═══╝ ╚═════╝")
 
-	aboutContent := asciiArt + "\n\nA cross-platform script browser powered by RocketPowerInc.\n\nBuilt with Go and powered by Charm_ Bubble Tea framework.\n\nVisit us at https://github.com/rocketpowerinc"
+	// Description text using theme primary color
+	descriptionStyle := lipgloss.NewStyle().Foreground(m.theme.Current.Primary)
+	description := descriptionStyle.Render("\n\nA cross-platform script browser powered by RocketPowerInc.\n\nBuilt with Go and powered by Charm_ Bubble Tea framework.\n\nVisit us at https://github.com/rocketpowerinc")
+
+	aboutContent := asciiArt + description
 
 	aboutPanel := lipgloss.NewStyle().
 		Border(lipgloss.NormalBorder()).
-		BorderForeground(grey).
-		Foreground(grey).
+		BorderForeground(m.theme.Current.Primary).
 		Width(m.width - 4).
 		Height(panelHeight).
 		Align(lipgloss.Center, lipgloss.Center).
