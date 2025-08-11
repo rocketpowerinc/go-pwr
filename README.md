@@ -2,55 +2,9 @@
 
 ## ✨ Overview
 
-**`go-pwr`** is a cross-platform launcher for your personal automation scripts. Built with Go and powered by [Charm's](https://github.com/charmbracelet) [Bubble Tea framework](https://github.com/charmbracelet/bubbletea), it delivers a sleek, interactive TUI for browsing, previewing, and running bash and powershell scripts across Windows, macOS, Linux, and server environments. 
+**`go-pwr`** is a cross-platform launcher for your personal automation scripts. Built with Go and powered by [Charm's](https://github.com/charmbracelet) [Bubble Tea framework](https://github.com/charmbracelet/bubbletea), it delivers a sleek, interactive TUI for browsing, previewing, and running bash and powershell scripts across Windows, macOS, Linux, and server environments.
 
-Features beautiful syntax highlighting for script previews (when `bat` is installed), tag-based script search functionality, and gracefully falls back to plain text when not available. On first run, it automatically clones the "scriptbin" repository to `$HOME/Downloads/Temp/scriptbin`, providing a centralized location for script access and management that's easily accessible from your file manager.
-
-
----
-
-## 🏷️ Tagging Your Scripts
-
-To make your scripts searchable, add tags at the top of your script files using this format:
-
-### Bash/Shell Scripts (.sh)
-```bash
-#!/usr/bin/env bash
-set -euo pipefail
-
-#*Tags:
-# Languages: bash zsh
-# Platforms: Linux Mac WSL
-# Distros: Ubuntu Debian
-# Categories: utility development
-# PackageManagers: apt brew
-
-# Your script content here...
-```
-
-### PowerShell Scripts (.ps1)
-```powershell
-#! ADMIN NOT REQUIRED
-#! Description: Your script description
-
-#*Tags:
-# Languages: pwsh powershell
-# Platforms: Windows
-# Categories: utility demo
-# PackageManagers: winget chocolatey
-
-# Your script content here...
-```
-
-**Tagging Guidelines:**
-- Start the tags section with `#*Tags:` on its own line
-- Each category starts with `# CategoryName:` followed by space-separated tags
-- Use lowercase for consistency (parser handles case-insensitivity)
-- Common categories: `Languages`, `Platforms`, `Distros`, `Categories`, `PackageManagers`, `DesktopEnvironments`, `Architectures`
-- Add as many or as few tags as appropriate for your script
-
----
-
+Features beautiful syntax highlighting for script previews (when `bat` is installed), tag-based script search functionality. It automatically clones the "scriptbin" repository to `$HOME/Downloads/Temp/scriptbin`, providing a centralized location for script access and management that's easily accessible and always up to date with the latest scripts.
 
 ---
 
@@ -107,13 +61,6 @@ Or directly:
 
 ```
 
-**Script Repository Location:**
-The scriptbin repository is automatically cloned to `$HOME/Downloads/Temp/scriptbin` on first run. This centralized location makes it easy to:
-- Access scripts directly from your file manager
-- Back up your entire script collection
-- Sync scripts between different machines
-- Add new scripts manually outside of the TUI
-
 To ensure it's always in your path:
 
 - **Linux (Bash):**
@@ -131,34 +78,6 @@ To ensure it's always in your path:
     ```
 ---
 
-## 🛠️ Development
-
-This project follows Go best practices with a clean, modular architecture:
-
-```
-go-pwr/
-├── cmd/go-pwr/        # Application entry point
-├── internal/          # Private application code
-│   ├── app/           # Core application logic
-│   ├── config/        # Configuration management
-│   ├── git/           # Git operations
-│   ├── scripts/       # Script discovery and management
-│   └── ui/            # User interface components
-├── pkg/platform/      # Platform-specific utilities
-└── Makefile          # Build automation
-```
-
-### Build Commands
-
-- `make build` - Build the application
-- `make install` - Install to GOPATH/bin
-- `make dev` - Build and run in development mode
-- `make test` - Run tests
-- `make clean` - Clean build artifacts
-
-See `ARCHITECTURE.md` for detailed documentation.
-
----
 
 ## ⚡️ Dev Aliases
 
@@ -225,6 +144,7 @@ Then reload your shell:
 - ⚠️ macOS default Terminal has issues with borders/syntax in `gum`; use **iTerm2** instead
 
 ---
+
 ### 🎨 Syntax Highlighting
 
 `go-pwr` automatically provides beautiful syntax highlighting in script previews using [`bat`](https://github.com/sharkdp/bat) when available. **If `bat` is not installed, the application gracefully falls back to plain text previews with helpful installation instructions.**
@@ -252,14 +172,6 @@ Then reload your shell:
 
 **`go-pwr`** includes powerful tag-based search functionality to help you quickly find the right scripts for your needs. Scripts can be tagged with:
 
-- **Languages**: `bash`, `pwsh`, `zsh`, `fish`
-- **Platforms**: `Windows`, `Linux`, `Mac`, `Server`, `WSL`, `Docker`
-- **Distributions**: `Ubuntu`, `Debian`, `Fedora`, `Arch`, `NixOS`, `RaspberryPi`
-- **Architectures**: `ARM64/AArch64`, `x86_64`
-- **Package Managers**: `winget`, `choco`, `scoop`, `brew`, `apt`, `dnf`, `pacman`, `nix`, `flatpacj` `snap`,
-- **Desktop Environments**: `Gnome`, `kde`, `hyprland`, `xfce`
-- **Categories**: `utility`, `backup`, `development`, `networking`
-
 **Usage:**
 - Press `Ctrl+F` to activate search mode
 - Type multiple tags separated by spaces (e.g., `bash linux ubuntu`)
@@ -267,7 +179,49 @@ Then reload your shell:
 - Press `Enter` to apply search or `Escape` to cancel
 - Press `Escape` again to clear search and show all scripts
 
-### 🔄 Recursive vs Directory Mode
+
+## 🏷️ Tagging Your Scripts
+
+To make your scripts searchable, add tags at the top of your script files using this format:
+
+### Bash/Shell Scripts (.sh)
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+#*Tags:
+# Languages: bash zsh
+# Platforms: Linux Mac WSL
+# Distros: Ubuntu Debian
+# Categories: utility development
+# PackageManagers: apt brew
+
+# Your script content here...
+```
+
+### PowerShell Scripts (.ps1)
+```powershell
+#! ADMIN NOT REQUIRED
+#! Description: Your script description
+
+#*Tags:
+# Languages: pwsh powershell
+# Platforms: Windows
+# Categories: utility demo
+# PackageManagers: winget chocolatey
+
+# Your script content here...
+```
+
+**Tagging Guidelines:**
+- Start the tags section with `#*Tags:` on its own line
+- Each category starts with `# CategoryName:` followed by space-separated tags
+- Use lowercase for consistency (parser handles case-insensitivity)
+- Common categories: `Languages`, `Platforms`, `Distros`, `Categories`, `PackageManagers`, `DesktopEnvironments`, `Architectures`
+- Add as many or as few tags as appropriate for your script
+
+
+## 🔄 Recursive vs Directory Mode
 
 **`go-pwr`** supports two viewing modes:
 
