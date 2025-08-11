@@ -485,7 +485,23 @@ func (m Model) renderAboutTab() string {
 	grey := lipgloss.Color("244")
 	panelHeight := m.height - 6
 
-	aboutContent := "A cross-platform script browser powered by RocketPowerInc.\n\nBuilt with Go and powered by Charm_ Bubble Tea framework.\n\nVisit us at https://github.com/rocketpowerinc"
+	// ASCII art for the logo
+	asciiArt := "\n" +
+		"					██████╗  ██████╗  ██████╗██╗  ██╗███████╗████████╗\n" +
+		"         ██╔══██╗██╔═══██╗██╔════╝██║ ██╔╝██╔════╝╚══██╔══╝\n" +
+		"         ██████╔╝██║   ██║██║     █████╔╝ █████╗     ██║   \n" +
+		"         ██╔══██╗██║   ██║██║     ██╔═██╗ ██╔══╝     ██║   \n" +
+		"         ██║  ██║╚██████╔╝╚██████╗██║  ██╗███████╗   ██║   \n" +
+		"         ╚═╝  ╚═╝ ╚═════╝  ╚═════╝╚═╝  ╚═╝╚══════╝   ╚═╝   \n" +
+		"                                                           \n" +
+		" ██████╗  ██████╗ ██╗    ██╗███████╗██████╗      ██╗███╗   ██╗ ██████╗\n" +
+		" ██╔══██╗██╔═══██╗██║    ██║██╔════╝██╔══██╗     ██║████╗  ██║██╔════╝\n" +
+		" ██████╔╝██║   ██║██║ █╗ ██║█████╗  ██████╔╝     ██║██╔██╗ ██║██║     \n" +
+		" ██╔═══╝ ██║   ██║██║███╗██║██╔══╝  ██╔══██╗     ██║██║╚██╗██║██║     \n" +
+		" ██║     ╚██████╔╝╚███╔███╔╝███████╗██║  ██║     ██║██║ ╚████║╚██████╗\n" +
+		" ╚═╝      ╚═════╝  ╚══╝╚══╝ ╚══════╝╚═╝  ╚═╝     ╚═╝╚═╝  ╚═══╝ ╚═════╝"
+
+	aboutContent := asciiArt + "\n\nA cross-platform script browser powered by RocketPowerInc.\n\nBuilt with Go and powered by Charm_ Bubble Tea framework.\n\nVisit us at https://github.com/rocketpowerinc"
 
 	aboutPanel := lipgloss.NewStyle().
 		Border(lipgloss.NormalBorder()).
