@@ -98,11 +98,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl+tab":
 			// Tab switching - same as regular tab but with ctrl modifier
 			m.switchTab((m.activeTab + 1) % len(m.tabs))
-		case "ctrl+left", "cmd+left", "alt+left", "shift+left":
+		case "ctrl+left", "cmd+left", "alt+left", "shift+left", "ctrl+h":
 			if m.activeTab == 0 || m.activeTab == 1 {
 				m.focus = FocusList
 			}
-		case "ctrl+right", "cmd+right", "alt+right", "shift+right":
+		case "ctrl+right", "cmd+right", "alt+right", "shift+right", "ctrl+l":
 			if m.activeTab == 0 || m.activeTab == 1 {
 				m.focus = FocusPreview
 			}
@@ -310,16 +310,16 @@ func (m Model) View() string {
 			footerText = "'Tab' Tabs • '↑↓' Navigate • 'Enter' Run • 'Ctrl+F' Search • 'q' Quit"
 		} else if m.width < 120 {
 			// Medium footer for medium terminals
-			footerText = "'Tab' Switch • '←↑↓→' Navigate • 'Enter' Run/Select • 'Ctrl+F' Search • 'Ctrl+R' Recursive • 'Shift+←→' Switch Panes • 'q' Quit"
+			footerText = "'Tab' Switch • '←↑↓→' Navigate • 'Enter' Run/Select • 'Ctrl+F' Search • 'Ctrl+R' Recursive • 'Ctrl+H/L' Switch Panes • 'q' Quit"
 		} else {
 			// Full footer for large terminals
-			footerText = "'Tab' Switch Tabs • '←↑↓→' Navigate • 'Ctrl/Shift + ←→' Switch Panes • 'Enter' Run/Select • 'Ctrl+F' Search • 'Ctrl+R' Toggle Recursive • 'q' Quit"
+			footerText = "'Tab' Switch Tabs • '←↑↓→' Navigate • 'Ctrl/Shift + ←→' or 'Ctrl+H/L' Switch Panes • 'Enter' Run/Select • 'Ctrl+F' Search • 'Ctrl+R' Toggle Recursive • 'q' Quit"
 		}
 	} else {
 		if m.width < 80 {
 			footerText = "'Tab' Tabs • '↑↓' Navigate • 'Enter' Select • 'q' Quit"
 		} else {
-			footerText = "'Tab' Switch Tabs • '←↑↓→' Navigate • 'Ctrl/Shift + ←→' Switch Panes • 'Enter' Run/Select • 'q' Quit"
+			footerText = "'Tab' Switch Tabs • '←↑↓→' Navigate • 'Ctrl/Shift + ←→' or 'Ctrl+H/L' Switch Panes • 'Enter' Run/Select • 'q' Quit"
 		}
 	}
 	

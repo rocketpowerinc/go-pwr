@@ -115,9 +115,9 @@ func IsDesktopEnvironment() bool {
 	return false
 }
 
-// ExecuteInCurrentTerminal executes a script in the current terminal using tmux/screen or direct execution
+// ExecuteInCurrentTerminal executes a script in the current terminal using tmux or direct execution
 func ExecuteInCurrentTerminal(scriptPath, scriptName string) error {
-	// Check if we're already in tmux or screen
+	// Check if we're already in tmux
 	if os.Getenv("TMUX") != "" {
 		// We're in tmux - create a new window
 		var cmd *exec.Cmd
@@ -126,19 +126,6 @@ func ExecuteInCurrentTerminal(scriptPath, scriptName string) error {
 				fmt.Sprintf("clear; echo 'Running: %s'; pwsh '%s'; echo; read -p 'Press Enter to close this window...'", scriptName, scriptPath))
 		} else {
 			cmd = exec.Command("tmux", "new-window", "-n", scriptName, "bash", "-c", 
-				fmt.Sprintf("clear; echo 'Running: %s'; bash '%s'; echo; read -p 'Press Enter to close this window...'", scriptName, scriptPath))
-		}
-		return cmd.Start()
-	}
-	
-	if os.Getenv("STY") != "" {
-		// We're in screen - create a new window
-		var cmd *exec.Cmd
-		if strings.HasSuffix(scriptName, ".ps1") {
-			cmd = exec.Command("screen", "-t", scriptName, "bash", "-c", 
-				fmt.Sprintf("clear; echo 'Running: %s'; pwsh '%s'; echo; read -p 'Press Enter to close this window...'", scriptName, scriptPath))
-		} else {
-			cmd = exec.Command("screen", "-t", scriptName, "bash", "-c", 
 				fmt.Sprintf("clear; echo 'Running: %s'; bash '%s'; echo; read -p 'Press Enter to close this window...'", scriptName, scriptPath))
 		}
 		return cmd.Start()
@@ -162,24 +149,12 @@ func ExecuteInCurrentTerminal(scriptPath, scriptName string) error {
 		}
 	}
 	
-	// Check if screen is available and start a new session
-	if _, err := exec.LookPath("screen"); err == nil {
-		var cmd *exec.Cmd
-		if strings.HasSuffix(scriptName, ".ps1") {
-			cmd = exec.Command("screen", "-S", fmt.Sprintf("go-pwr-%s", scriptName), "bash", "-c", 
-				fmt.Sprintf("clear; echo 'Running: %s'; echo 'Use Ctrl+A then D to detach, or exit to close'; pwsh '%s'; echo; read -p 'Press Enter to close this session...'", scriptName, scriptPath))
-		} else {
-			cmd = exec.Command("screen", "-S", fmt.Sprintf("go-pwr-%s", scriptName), "bash", "-c", 
-				fmt.Sprintf("clear; echo 'Running: %s'; echo 'Use Ctrl+A then D to detach, or exit to close'; bash '%s'; echo; read -p 'Press Enter to close this session...'", scriptName, scriptPath))
-		}
-		return cmd.Start()
-	}
-	
 	// Last resort: direct execution with warning
-	fmt.Printf("\n=== Executing script directly (no terminal multiplexer available) ===\n")
+	fmt.Printf("\n=== Executing script directly (tmux not available) ===\n")
 	fmt.Printf("Script: %s\n", scriptName)
 	fmt.Printf("Path: %s\n", scriptPath)
-	fmt.Printf("================================================================\n\n")
+	fmt.Printf("Install tmux for better experience: sudo apt install tmux\n")
+	fmt.Printf("========================================================\n\n")
 	
 	var cmd *exec.Cmd
 	if strings.HasSuffix(scriptName, ".ps1") {
@@ -194,7 +169,7 @@ func ExecuteInCurrentTerminal(scriptPath, scriptName string) error {
 	
 	err := cmd.Run()
 	
-	fmt.Printf("\n================================================================\n")
+	fmt.Printf("\n========================================================\n")
 	fmt.Printf("Script execution completed. Press Enter to continue...")
 	fmt.Scanln()
 	

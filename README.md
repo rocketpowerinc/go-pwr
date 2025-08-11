@@ -155,15 +155,15 @@ Then reload your shell:
 
 **Server Environments (Headless/SSH):**
 - Automatically detects server environments (no DISPLAY variable)
-- Uses `tmux` or `screen` sessions to run scripts in separate windows
-- Falls back to direct execution if no terminal multiplexer is available
+- Uses `tmux` sessions to run scripts in separate windows
+- Falls back to direct execution if tmux is not available
 - Perfect for remote server management and automation
 
 **Server Usage Tips:**
-- Install `tmux` or `screen` for the best experience: `sudo apt install tmux`
+- Install `tmux` for the best experience: `sudo apt install tmux`
 - Scripts run in named sessions: `tmux list-sessions` to see active sessions
-- Use `Ctrl+B, D` (tmux) or `Ctrl+A, D` (screen) to detach from running scripts
-- Terminal multiplexers allow scripts to continue running even if you disconnect
+- Use `Ctrl+B, D` to detach from running scripts
+- tmux allows scripts to continue running even if you disconnect
 
 ---
 
@@ -275,7 +275,8 @@ set -euo pipefail
 
 **Pane Switching (when preview is available):**
 - `Ctrl+←` / `Ctrl+→` - Switch between left panel and preview pane
-- `Shift+←` / `Shift+→` - Alternative pane switching (useful on servers where Ctrl+arrows don't work)
+- `Shift+←` / `Shift+→` - Alternative pane switching
+- `Ctrl+H` / `Ctrl+L` - Vim-style pane switching (works better on some servers)
 
 **Search and Modes:**
 - `Ctrl+F` or `/` - Activate tag-based search
