@@ -313,13 +313,13 @@ func (m Model) View() string {
 			footerText = "'Tab' Switch • '←↑↓→' Navigate • 'Enter' Run/Select • 'Ctrl+F' Search • 'Ctrl+R' Recursive • 'Ctrl+H/L' Switch Panes • 'q' Quit"
 		} else {
 			// Full footer for large terminals
-			footerText = "'Tab' Switch Tabs • '←↑↓→' Navigate • 'Ctrl/Shift + ←→' or 'Ctrl+H/L' Switch Panes • 'Enter' Run/Select • 'Ctrl+F' Search • 'Ctrl+R' Toggle Recursive • 'q' Quit"
+			footerText = "'Tab' Switch Tabs • '←↑↓→' Navigate • 'Ctrl+H/L' Switch Panes • 'Enter' Run/Select • 'Ctrl+F' Search • 'Ctrl+R' Toggle Recursive • 'q' Quit"
 		}
 	} else {
 		if m.width < 80 {
 			footerText = "'Tab' Tabs • '↑↓' Navigate • 'Enter' Select • 'q' Quit"
 		} else {
-			footerText = "'Tab' Switch Tabs • '←↑↓→' Navigate • 'Ctrl/Shift + ←→' or 'Ctrl+H/L' Switch Panes • 'Enter' Run/Select • 'q' Quit"
+			footerText = "'Tab' Switch Tabs • '←↑↓→' Navigate • 'Ctrl+H/L' Switch Panes • 'Enter' Run/Select • 'q' Quit"
 		}
 	}
 	
