@@ -125,13 +125,15 @@ EOF
 cat << 'EOF' >> ~/.bashrc
 # Alias to launch latest go-pwr
 function goo() {
-  cd $HOME
-  rm -rf go-pwr &&
-  rm -f ~/go/bin/go-pwr &&
-  git clone https://github.com/rocketpowerinc/go-pwr.git &&
-  cd go-pwr &&
-  make install &&
-  ~/go/bin/go-pwr
+    tmux new-session bash -c "
+        cd \$HOME &&
+        rm -rf go-pwr &&
+        rm -f ~/go/bin/go-pwr &&
+        git clone https://github.com/rocketpowerinc/go-pwr.git &&
+        cd go-pwr &&
+        make install &&
+        ~/go/bin/go-pwr;
+        exec bash"
 }
 EOF
 
