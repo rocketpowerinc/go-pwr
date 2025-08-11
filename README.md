@@ -4,7 +4,7 @@
 
 **`go-pwr`** is a cross-platform launcher for your personal automation scripts. Built with Go and powered by [Charm's](https://github.com/charmbracelet) [Bubble Tea framework](https://github.com/charmbracelet/bubbletea), it delivers a sleek, interactive TUI for browsing, previewing, and running bash and powershell scripts across Windows, macOS, Linux, and server environments. 
 
-Features beautiful syntax highlighting for script previews (when `bat` is installed), tag-based script search functionality, and gracefully falls back to plain text when not available. On first run, it automatically clones my "scriptbin" repository into a local directory along with the `go-pwr` TUI, making script access and management simple and seamless.
+Features beautiful syntax highlighting for script previews (when `bat` is installed), tag-based script search functionality, and gracefully falls back to plain text when not available. On first run, it automatically clones the "scriptbin" repository to `$HOME/Downloads/Temp/scriptbin`, providing a centralized location for script access and management that's easily accessible from your file manager.
 
 
 ---
@@ -106,6 +106,13 @@ Or directly:
 ~/go/bin/go-pwr
 
 ```
+
+**Script Repository Location:**
+The scriptbin repository is automatically cloned to `$HOME/Downloads/Temp/scriptbin` on first run. This centralized location makes it easy to:
+- Access scripts directly from your file manager
+- Back up your entire script collection
+- Sync scripts between different machines
+- Add new scripts manually outside of the TUI
 
 To ensure it's always in your path:
 

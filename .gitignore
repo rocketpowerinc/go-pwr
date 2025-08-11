@@ -1,6 +1,3 @@
-# Ignore the cloned scriptbin repository
-scriptbin/
-
 # Ignore Go build artifacts
 *.exe
 *.dll
