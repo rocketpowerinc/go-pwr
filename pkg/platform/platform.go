@@ -67,7 +67,7 @@ end tell`, scriptCmd)
 			// Server environment: run in current terminal with tmux/screen if available
 			return ExecuteInCurrentTerminal(scriptPath, scriptName)
 		}
-		
+
 		// Desktop environment: try common GUI terminals
 		term := ""
 		for _, candidate := range []string{"gnome-terminal", "konsole", "x-terminal-emulator", "xterm"} {
@@ -80,7 +80,7 @@ end tell`, scriptCmd)
 			// Fallback to current terminal execution if no GUI terminal found
 			return ExecuteInCurrentTerminal(scriptPath, scriptName)
 		}
-		
+
 		if strings.HasSuffix(scriptName, ".ps1") {
 			cmd = exec.Command(term, "--", "bash", "-l", "-c", "clear; pwsh "+scriptPath+"; echo; read -p 'Press Enter to exit'")
 		} else {
@@ -97,21 +97,21 @@ func IsDesktopEnvironment() bool {
 	if display := os.Getenv("DISPLAY"); display != "" {
 		return true
 	}
-	
+
 	// Check for Wayland environment
 	if wayland := os.Getenv("WAYLAND_DISPLAY"); wayland != "" {
 		return true
 	}
-	
+
 	// Check for common desktop session variables
 	if session := os.Getenv("DESKTOP_SESSION"); session != "" {
 		return true
 	}
-	
+
 	if xdg := os.Getenv("XDG_SESSION_TYPE"); xdg != "" {
 		return true
 	}
-	
+
 	return false
 }
 
@@ -130,7 +130,7 @@ func ExecuteInCurrentTerminal(scriptPath, scriptName string) error {
 		}
 		return cmd.Start()
 	}
-	
+
 	// Check if tmux is available and start a new session
 	if _, err := exec.LookPath("tmux"); err == nil {
 		var cmd *exec.Cmd
@@ -148,30 +148,30 @@ func ExecuteInCurrentTerminal(scriptPath, scriptName string) error {
 			return attachCmd.Start()
 		}
 	}
-	
+
 	// Last resort: direct execution with warning
 	fmt.Printf("\n=== Executing script directly (tmux not available) ===\n")
 	fmt.Printf("Script: %s\n", scriptName)
 	fmt.Printf("Path: %s\n", scriptPath)
 	fmt.Printf("Install tmux for better experience: sudo apt install tmux\n")
 	fmt.Printf("========================================================\n\n")
-	
+
 	var cmd *exec.Cmd
 	if strings.HasSuffix(scriptName, ".ps1") {
 		cmd = exec.Command("pwsh", scriptPath)
 	} else {
 		cmd = exec.Command("bash", scriptPath)
 	}
-	
+
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin
-	
+
 	err := cmd.Run()
-	
+
 	fmt.Printf("\n========================================================\n")
 	fmt.Printf("Script execution completed. Press Enter to continue...")
 	fmt.Scanln()
-	
+
 	return err
 }
