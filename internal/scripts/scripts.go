@@ -281,8 +281,9 @@ func ReadContentWithHighlighting(path string, cache *Cache) string {
 		return content
 	}
 
-	// Simple, reliable bat command
+	// Use bat with DarkNeon theme
 	cmd := exec.Command(batCmd, 
+		"--theme=DarkNeon",
 		"--color=always",
 		"--style=numbers",
 		"--paging=never",
