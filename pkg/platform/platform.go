@@ -117,61 +117,40 @@ func IsDesktopEnvironment() bool {
 
 // ExecuteInCurrentTerminal executes a script in the current terminal using tmux or direct execution
 func ExecuteInCurrentTerminal(scriptPath, scriptName string) error {
-	// Check if we're already in tmux
-       if os.Getenv("TMUX") != "" {
-	       // We're in tmux - create a new window
-	       var cmd *exec.Cmd
-	       // Try bat, then batcat for syntax highlighting
-	       batCmd := "bat --theme=DarkNeon"
-	       if _, err := exec.LookPath("bat"); err != nil {
-		       if _, err := exec.LookPath("batcat"); err == nil {
-			       batCmd = "batcat --theme=DarkNeon"
-		       } else {
-			       batCmd = "cat" // fallback
-		       }
-	       }
-		// Helper: build preview command with bat/batcat and DarkNeon theme
-		batPreview := fmt.Sprintf("if command -v bat &>/dev/null; then bat --theme=\"DarkNeon\" --style=numbers --color=always '%s'; elif command -v batcat &>/dev/null; then batcat --theme=\"DarkNeon\" --style=numbers --color=always '%s'; else cat '%s'; fi", scriptPath, scriptPath, scriptPath)
+	// Helper: build preview command with bat/batcat and DarkNeon theme
+	batPreview := fmt.Sprintf("if command -v bat &>/dev/null; then bat --theme=\"DarkNeon\" --style=numbers --color=always '%s'; elif command -v batcat &>/dev/null; then batcat --theme=\"DarkNeon\" --style=numbers --color=always '%s'; else cat '%s'; fi", scriptPath, scriptPath, scriptPath)
 
-		if os.Getenv("TMUX") != "" {
-			// In tmux: create a new window with preview then run
-			var cmd *exec.Cmd
-			if strings.HasSuffix(scriptName, ".ps1") {
-				cmd = exec.Command("tmux", "new-window", "-n", scriptName, "bash", "-c",
-					fmt.Sprintf("clear; echo 'Preview:'; %s; echo; echo 'Running: %s'; pwsh '%s'; echo; read -p 'Press Enter to close this window...'", batPreview, scriptName, scriptPath))
-			} else {
-				cmd = exec.Command("tmux", "new-window", "-n", scriptName, "bash", "-c",
-					fmt.Sprintf("clear; echo 'Preview:'; %s; echo; echo 'Running: %s'; bash '%s'; echo; read -p 'Press Enter to close this window...'", batPreview, scriptName, scriptPath))
-			}
-			return cmd.Start()
-       }
+	// Check if we're already in tmux
+	if os.Getenv("TMUX") != "" {
+		// We're in tmux - create a new window with preview then run
+		var cmd *exec.Cmd
+		if strings.HasSuffix(scriptName, ".ps1") {
+			cmd = exec.Command("tmux", "new-window", "-n", scriptName, "bash", "-c",
+				fmt.Sprintf("clear; echo 'Preview:'; %s; echo; echo 'Running: %s'; pwsh '%s'; echo; read -p 'Press Enter to close this window...'", batPreview, scriptName, scriptPath))
+		} else {
+			cmd = exec.Command("tmux", "new-window", "-n", scriptName, "bash", "-c",
+				fmt.Sprintf("clear; echo 'Preview:'; %s; echo; echo 'Running: %s'; bash '%s'; echo; read -p 'Press Enter to close this window...'", batPreview, scriptName, scriptPath))
+		}
+		return cmd.Start()
+	}
 	
 	// Check if tmux is available and start a new session
-       if _, err := exec.LookPath("tmux"); err == nil {
-	       var cmd *exec.Cmd
-	       sessionName := fmt.Sprintf("go-pwr-%s", strings.ReplaceAll(scriptName, ".", "-"))
-	       // Try bat, then batcat for syntax highlighting
-	       batCmd := "bat --theme=DarkNeon"
-	       if _, err := exec.LookPath("bat"); err != nil {
-		       if _, err := exec.LookPath("batcat"); err == nil {
-			       batCmd = "batcat --theme=DarkNeon"
-		       } else {
-			       batCmd = "cat" // fallback
-		       }
-	       }
-	       var runCmd string
-	       if strings.HasSuffix(scriptName, ".ps1") {
-		       runCmd = fmt.Sprintf("clear; echo 'Running: %s'; echo 'Use Ctrl+B then D to detach, or exit to close'; %s '%s'; echo; pwsh '%s'; echo; read -p 'Press Enter to close this session...'", scriptName, batCmd, scriptPath, scriptPath)
-	       } else {
-		       runCmd = fmt.Sprintf("clear; echo 'Running: %s'; echo 'Use Ctrl+B then D to detach, or exit to close'; %s '%s'; echo; bash '%s'; echo; read -p 'Press Enter to close this session...'", scriptName, batCmd, scriptPath, scriptPath)
-	       }
-	       cmd = exec.Command("tmux", "new-session", "-d", "-s", sessionName, "bash", "-c", runCmd)
-	       if err := cmd.Start(); err == nil {
-		       // Attach to the session
-		       attachCmd := exec.Command("tmux", "attach-session", "-t", sessionName)
-		       return attachCmd.Start()
-	       }
-       }
+	if _, err := exec.LookPath("tmux"); err == nil {
+		var cmd *exec.Cmd
+		sessionName := fmt.Sprintf("go-pwr-%s", strings.ReplaceAll(scriptName, ".", "-"))
+		if strings.HasSuffix(scriptName, ".ps1") {
+			cmd = exec.Command("tmux", "new-session", "-d", "-s", sessionName, "bash", "-c",
+				fmt.Sprintf("clear; echo 'Preview:'; %s; echo; echo 'Running: %s'; echo 'Use Ctrl+B then D to detach, or exit to close'; pwsh '%s'; echo; read -p 'Press Enter to close this session...'", batPreview, scriptName, scriptPath))
+		} else {
+			cmd = exec.Command("tmux", "new-session", "-d", "-s", sessionName, "bash", "-c",
+				fmt.Sprintf("clear; echo 'Preview:'; %s; echo; echo 'Running: %s'; echo 'Use Ctrl+B then D to detach, or exit to close'; bash '%s'; echo; read -p 'Press Enter to close this session...'", batPreview, scriptName, scriptPath))
+		}
+		if err := cmd.Start(); err == nil {
+			// Attach to the session
+			attachCmd := exec.Command("tmux", "attach-session", "-t", sessionName)
+			return attachCmd.Start()
+		}
+	}
 	
 	// Last resort: direct execution with warning
 	fmt.Printf("\n=== Executing script directly (tmux not available) ===\n")
