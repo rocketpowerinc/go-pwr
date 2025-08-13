@@ -130,14 +130,20 @@ func ExecuteInCurrentTerminal(scriptPath, scriptName string) error {
 			       batCmd = "cat" // fallback
 		       }
 	       }
-	       var runCmd string
-	       if strings.HasSuffix(scriptName, ".ps1") {
-		       runCmd = fmt.Sprintf("clear; echo 'Running: %s'; %s '%s'; echo; pwsh '%s'; echo; read -p 'Press Enter to close this window...'", scriptName, batCmd, scriptPath, scriptPath)
-	       } else {
-		       runCmd = fmt.Sprintf("clear; echo 'Running: %s'; %s '%s'; echo; bash '%s'; echo; read -p 'Press Enter to close this window...'", scriptName, batCmd, scriptPath, scriptPath)
-	       }
-	       cmd = exec.Command("tmux", "new-window", "-n", scriptName, "bash", "-c", runCmd)
-	       return cmd.Start()
+		// Helper: build preview command with bat/batcat and DarkNeon theme
+		batPreview := fmt.Sprintf("if command -v bat &>/dev/null; then bat --theme=\"DarkNeon\" --style=numbers --color=always '%s'; elif command -v batcat &>/dev/null; then batcat --theme=\"DarkNeon\" --style=numbers --color=always '%s'; else cat '%s'; fi", scriptPath, scriptPath, scriptPath)
+
+		if os.Getenv("TMUX") != "" {
+			// In tmux: create a new window with preview then run
+			var cmd *exec.Cmd
+			if strings.HasSuffix(scriptName, ".ps1") {
+				cmd = exec.Command("tmux", "new-window", "-n", scriptName, "bash", "-c",
+					fmt.Sprintf("clear; echo 'Preview:'; %s; echo; echo 'Running: %s'; pwsh '%s'; echo; read -p 'Press Enter to close this window...'", batPreview, scriptName, scriptPath))
+			} else {
+				cmd = exec.Command("tmux", "new-window", "-n", scriptName, "bash", "-c",
+					fmt.Sprintf("clear; echo 'Preview:'; %s; echo; echo 'Running: %s'; bash '%s'; echo; read -p 'Press Enter to close this window...'", batPreview, scriptName, scriptPath))
+			}
+			return cmd.Start()
        }
 	
 	// Check if tmux is available and start a new session
