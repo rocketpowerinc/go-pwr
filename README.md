@@ -62,6 +62,14 @@ Or directly:
 ```
 
 To ensure it's always in your path:
+- **Windows (pwsh):**
+
+    ```bash
+    if (-not (Select-String -Path $PROFILE -Pattern '\$HOME\\go\\bin' -Quiet)) {
+    Add-Content -Path $PROFILE -Value '$env:PATH = "$HOME\go\bin;" + $env:PATH'
+    . $PROFILE
+  }
+    ```
 
 - **Linux (Bash):**
 
