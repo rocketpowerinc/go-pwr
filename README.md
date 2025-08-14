@@ -110,7 +110,8 @@ set -euo pipefail
 
 - `Ctrl+←` / `Ctrl+→` - Switch between left panel and preview pane
 - `Shift+←` / `Shift+→` - Alternative pane switching
-- `Ctrl+H` / `Ctrl+L` - Vim-style pane switching (works better on servers)
+- `Alt+←` / `Alt+→` - Alternative pane switching (Works for MacOS)
+- `Ctrl+H` / `Ctrl+L` - Vim-style pane switching (Works for servers)
 
 **Search and Modes:**
 
