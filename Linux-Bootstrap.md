@@ -69,4 +69,30 @@ make install
 
 ## 🚀 Usage
 
-- From terminal `go-pwr`
+### Basic Usage
+```bash
+go-pwr
+```
+
+Or with full path:
+```bash
+~/go/bin/go-pwr
+```
+
+**⚠️ Important**: The app will show a prominent warning recommending tmux usage on Linux.
+
+### Recommended Usage (with tmux)
+```bash
+# Start in a new tmux session
+tmux new-session go-pwr
+
+# Or start tmux first, then run go-pwr
+tmux
+go-pwr
+```
+
+### Disable Warning (if needed)
+```bash
+export GO_PWR_NO_TMUX_WARNING=1
+go-pwr
+```
