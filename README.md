@@ -1,5 +1,12 @@
 # Go-PWR Application
 
+<video width="100%" controls>
+  <source src="VHS/go-pwr.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+
+Please visit us at [RocketPowerInc.com](https://rocketdashboard.notion.site/Welcome-to-RocketPowerInc-1a1627bc6fd8805ab693f164a1b3ceda)
+
 ## ✨ Overview
 
 **`go-pwr`** is a cross-platform launcher for your personal automation scripts. Built with Go and powered by [Charm's](https://github.com/charmbracelet) [Bubble Tea framework](https://github.com/charmbracelet/bubbletea), it delivers a sleek, interactive TUI for browsing, previewing, and running bash and powershell scripts across Windows, macOS, Linux, and server environments.
