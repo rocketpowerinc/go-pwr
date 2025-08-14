@@ -11,10 +11,12 @@ Complete installation guide for **go-pwr** on Linux.
 # Ubuntu
 sudo snap install go --classic
 ```
+
 ```bash
 # Debian
 sudo apt install golang-go
 ```
+
 ```bash
 # Fedora
 sudo dnf install golang
@@ -38,7 +40,6 @@ sudo apt update && sudo apt install -y git gh jq make bat tmux curl wget glow gu
 # Fedora
 sudo dnf install -y git gh jq make bat tmux curl wget glow gum
 ```
-
 
 ## 🚀 Installation Methods
 
@@ -70,11 +71,13 @@ make install
 ## 🚀 Usage
 
 ### Basic Usage
+
 ```bash
 go-pwr
 ```
 
 Or with full path:
+
 ```bash
 ~/go/bin/go-pwr
 ```
@@ -82,6 +85,7 @@ Or with full path:
 **⚠️ Important**: The app will show a prominent warning recommending tmux usage on Linux.
 
 ### Recommended Usage (with tmux)
+
 ```bash
 # Start in a new tmux session
 tmux new-session go-pwr
@@ -92,6 +96,7 @@ go-pwr
 ```
 
 ### Disable Warning (if needed)
+
 ```bash
 export GO_PWR_NO_TMUX_WARNING=1
 go-pwr
