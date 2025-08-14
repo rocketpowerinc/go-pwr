@@ -7,11 +7,13 @@ Complete installation guide for **go-pwr** on macOS.
 Visit: https://brew.sh/
 
 - Run install
+
 ```bash
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 ```
 
 - Add Paths to zsh
+
 ```
   echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> /Users/rocket/.zprofile
 eval "$(/opt/homebrew/bin/brew shellenv)"
@@ -39,7 +41,6 @@ echo 'export PATH="$HOME/go/bin:$PATH"' >> ~/.zshrc && source ~/.zshrc
 brew install git gh jq make bat curl wget glow gum
 ```
 
-
 ## 🚀 Installation Methods
 
 ### Method 1: Go Install (Recommended)
@@ -64,7 +65,6 @@ git clone https://github.com/rocketpowerinc/go-pwr.git
 cd go-pwr
 make install
 ```
-
 
 ## 🚀 Usage
 
@@ -103,7 +103,6 @@ Then reload your shell:
 ```bash
 source ~/.zshrc
 ```
-
 
 ### Known Issues
 
