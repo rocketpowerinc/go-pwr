@@ -69,7 +69,9 @@ type Model struct {
 
 // NewModel creates a new UI model.
 func NewModel(cfg *config.Config) *Model {
-	theme := styles.NewTheme(styles.OceanBreeze)
+	// Load the saved theme or use default
+	savedScheme := styles.GetSchemeByName(cfg.Theme)
+	theme := styles.NewTheme(savedScheme)
 	cache := scripts.NewCache()
 
 	// Create delegates
@@ -345,13 +347,19 @@ func (m *Model) updatePreview() {
 	}
 }
 
-// applyColorScheme applies a color scheme.
+// applyColorScheme applies a color scheme and saves the preference.
 func (m *Model) applyColorScheme(schemeName string) {
 	schemes := styles.AllSchemes()
 	for _, scheme := range schemes {
 		if strings.Contains(schemeName, scheme.Name) {
 			m.theme.UpdateScheme(scheme)
-			m.vp.SetContent("Color scheme changed to " + scheme.Name + "! Press Tab to switch tabs and see the changes.")
+			
+			// Save the theme preference
+			if err := config.SaveTheme(scheme.Name); err != nil {
+				m.vp.SetContent("Color scheme changed to " + scheme.Name + "! (Note: Could not save preference - " + err.Error() + ")")
+			} else {
+				m.vp.SetContent("Color scheme changed to " + scheme.Name + "! Your preference has been saved and will be remembered next time.")
+			}
 			break
 		}
 	}

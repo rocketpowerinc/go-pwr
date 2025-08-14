@@ -75,6 +75,17 @@ func AllSchemes() []ColorScheme {
 	}
 }
 
+// GetSchemeByName returns a color scheme by name, or the default if not found.
+func GetSchemeByName(name string) ColorScheme {
+	for _, scheme := range AllSchemes() {
+		if scheme.Name == name {
+			return scheme
+		}
+	}
+	// Return default scheme if not found
+	return OceanBreeze
+}
+
 // Theme holds the current styling configuration.
 type Theme struct {
 	Current     ColorScheme
