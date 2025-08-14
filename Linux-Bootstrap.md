@@ -123,7 +123,7 @@ go-pwr
 ```
 
 ### Disable Warning (if needed)
-
+- Add to bashrc so it persists
 ```bash
 export GO_PWR_NO_TMUX_WARNING=1
 go-pwr
