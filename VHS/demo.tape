@@ -55,7 +55,7 @@
 #   Hide                            Hide the subsequent commands from the output
 #   Show                            Show the subsequent commands in the output
 
-Output go-pwr.mp4
+Output go-pwr.gif
 
 Set Shell "bash"
 Set FontSize 20

@@ -1,9 +1,6 @@
 # Go-PWR Application
 
-<video width="100%" controls>
-  <source src="VHS/go-pwr.mp4" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
+![go-pwr Demo](VHS/go-pwr.gif)
 
 Please visit us at [RocketPowerInc.com](https://rocketdashboard.notion.site/Welcome-to-RocketPowerInc-1a1627bc6fd8805ab693f164a1b3ceda)
 
