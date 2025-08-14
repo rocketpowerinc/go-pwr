@@ -68,6 +68,33 @@ cd go-pwr
 make install
 ```
 
+## ⚡ Dev Alias (Advanced Users)
+
+Add this alias to your shell profile for quick updates:
+
+```bash
+cat << 'EOF' >> ~/.bashrc
+# Alias to launch latest go-pwr
+function goo() {
+    tmux new-session bash -c "
+        cd \$HOME &&
+        rm -rf go-pwr &&
+        rm -f ~/go/bin/go-pwr &&
+        git clone https://github.com/rocketpowerinc/go-pwr.git &&
+        cd go-pwr &&
+        make install &&
+        ~/go/bin/go-pwr;
+        exec bash"
+}
+EOF
+```
+
+Then reload your shell:
+
+```bash
+source ~/.zshrc
+```
+
 ## 🚀 Usage
 
 ### Basic Usage
