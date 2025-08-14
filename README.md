@@ -14,20 +14,19 @@ First, install Go:
 
 - **Windows:**
 
-    `winget install -e --id GoLang.Go`
+  `winget install -e --id GoLang.Go`
 
 - **MacOS:**
 
-    `brew install go`
+  `brew install go`
 
 - **Ubuntu:**
 
-    `sudo snap install go --classic`
+  `sudo snap install go --classic`
 
-    Add to PATH if needed:
+  Add to PATH if needed:
 
-    `export PATH=/snap/bin:$PATH`
-
+  `export PATH=/snap/bin:$PATH`
 
 Then install `go-pwr`:
 
@@ -62,30 +61,31 @@ Or directly:
 ```
 
 To ensure it's always in your path:
+
 - **Windows (pwsh):**
 
-    ```bash
-    if (-not (Select-String -Path $PROFILE -Pattern '\$HOME\\go\\bin' -Quiet)) {
-    Add-Content -Path $PROFILE -Value '$env:PATH = "$HOME\go\bin;" + $env:PATH'
-    . $PROFILE
+  ```bash
+  if (-not (Select-String -Path $PROFILE -Pattern '\$HOME\\go\\bin' -Quiet)) {
+  Add-Content -Path $PROFILE -Value '$env:PATH = "$HOME\go\bin;" + $env:PATH'
+  . $PROFILE
   }
-    ```
+  ```
 
 - **Linux (Bash):**
 
-    ```bash
-    echo 'export PATH="$HOME/go/bin:$PATH"' >> ~/.bashrc && source ~/.bashrc
+  ```bash
+  echo 'export PATH="$HOME/go/bin:$PATH"' >> ~/.bashrc && source ~/.bashrc
 
-    ```
+  ```
 
 - **macOS (Zsh):**
 
-    ```bash
-    echo 'export PATH="$HOME/go/bin:$PATH"' >> ~/.zshrc && source ~/.zshrc
+  ```bash
+  echo 'export PATH="$HOME/go/bin:$PATH"' >> ~/.zshrc && source ~/.zshrc
 
-    ```
+  ```
+
 ---
-
 
 ## ⚡️ Dev Aliases
 
@@ -107,7 +107,6 @@ function goo {
 $gooAlias | Out-File -Append -Encoding UTF8 $PROFILE
 
 ```
-
 
 ### MacOS (Zsh)
 
@@ -155,6 +154,7 @@ Then reload your shell:
 - `source ~/.zshrc`
 
 ---
+
 ## 🐞 Known Issues / Bugs
 
 - ⚠️ macOS default Terminal has issues with borders/syntax in `gum`; use **iTerm2** instead
@@ -166,20 +166,26 @@ Then reload your shell:
 **`go-pwr`** works seamlessly on both desktop and server environments:
 
 **Desktop Environments:**
+
 - Opens scripts in new terminal windows (Windows Terminal, iTerm2, gnome-terminal, etc.)
 - Full GUI experience with syntax highlighting
 
 **Server Environments (Headless/SSH):**
-- Automatically detects server environments (no DISPLAY variable)
+
+- **Automatic tmux integration**: On Linux server environments (no DISPLAY), `go-pwr` automatically starts in a tmux session for the best experience
+- Detects server environments (no DISPLAY variable) and launches in tmux if available
 - Uses `tmux` sessions to run scripts in separate windows
 - Falls back to direct execution if tmux is not available
 - Perfect for remote server management and automation
 
 **Server Usage Tips:**
+
 - Install `tmux` for the best experience: `sudo apt install tmux`
+- **Automatic tmux**: The main application will auto-start in tmux on Linux servers
 - Scripts run in named sessions: `tmux list-sessions` to see active sessions
-- Use `Ctrl+B, D` to detach from running scripts
+- Use `Ctrl+B, D` to detach from running scripts or the main app
 - tmux allows scripts to continue running even if you disconnect
+- **Disable auto-tmux**: Set `export GO_PWR_NO_TMUX=1` to disable automatic tmux launching
 
 ---
 
@@ -190,11 +196,13 @@ Then reload your shell:
 **Optional: Install `bat` for enhanced syntax highlighting:**
 
 - **Windows:**
+
   ```bash
   winget install sharkdp.bat
   ```
 
 - **macOS:**
+
   ```bash
   brew install bat
   ```
@@ -203,26 +211,28 @@ Then reload your shell:
   ```bash
   sudo apt install bat
   ```
-  *Note: On Ubuntu, the command is known as `batcat` but `go-pwr` automatically detects this.*
+  _Note: On Ubuntu, the command is known as `batcat` but `go-pwr` automatically detects this._
 
 ---
+
 ### 🔍 Tag-Based Search
 
 **`go-pwr`** includes powerful tag-based search functionality to help you quickly find the right scripts for your needs. Scripts can be tagged with:
 
 **Usage:**
+
 - Press `Ctrl+F` to activate search mode
 - Type multiple tags separated by spaces (e.g., `bash linux ubuntu`)
 - Search results update in real-time as you type
 - Press `Enter` to apply search or `Escape` to cancel
 - Press `Escape` again to clear search and show all scripts
 
-
 ## 🏷️ Tagging Your Scripts
 
 To make your scripts searchable, add tags at the top of your script files using this format:
 
 ### Bash/Shell Scripts (.sh)
+
 ```bash
 #!/usr/bin/env bash
 set -euo pipefail
@@ -238,6 +248,7 @@ set -euo pipefail
 ```
 
 ### PowerShell Scripts (.ps1)
+
 ```powershell
 #! ADMIN NOT REQUIRED
 #! Description: Your script description
@@ -252,12 +263,12 @@ set -euo pipefail
 ```
 
 **Tagging Guidelines:**
+
 - Start the tags section with `#*Tags:` on its own line
 - Each category starts with `# CategoryName:` followed by space-separated tags
 - Use lowercase for consistency (parser handles case-insensitivity)
 - Common categories: `Languages`, `Platforms`, `Distros`, `Categories`, `PackageManagers`, `DesktopEnvironments`, `Architectures`
 - Add as many or as few tags as appropriate for your script
-
 
 ## 🔄 Recursive vs Directory Mode
 
@@ -267,6 +278,7 @@ set -euo pipefail
 - **Recursive Mode**: Search and view ALL scripts from all subdirectories at once
 
 **Toggle between modes:**
+
 - Press `Ctrl+R` to switch between Directory and Recursive modes
 - In **Recursive Mode**:
   - See all scripts from every subdirectory in one list
@@ -283,6 +295,7 @@ set -euo pipefail
 ## ⌨️ Keyboard Shortcuts
 
 **Navigation:**
+
 - `Tab` / `Shift+Tab` - Switch between tabs (Scripts, Options, About)
 - `Ctrl+Tab` - Alternative tab switching (useful when Tab key is intercepted)
 - `↑` / `↓` - Navigate through lists
@@ -290,20 +303,24 @@ set -euo pipefail
 - `Enter` - Run script or enter directory
 
 **Pane Switching (when preview is available):**
+
 - `Ctrl+←` / `Ctrl+→` - Switch between left panel and preview pane
 - `Shift+←` / `Shift+→` - Alternative pane switching
 - `Ctrl+H` / `Ctrl+L` - Vim-style pane switching (works better on servers)
 
 **Search and Modes:**
+
 - `Ctrl+F` or `/` - Activate tag-based search
 - `Ctrl+R` - Toggle between Recursive and Directory viewing modes
 - `Escape` - Cancel search or clear search terms
 
 **Preview Navigation:**
+
 - `Page Up` / `Page Down` - Scroll through script preview
 - Arrow keys when preview pane is focused
 
 **General:**
+
 - `q` or `Ctrl+C` - Quit application
 
 ---
