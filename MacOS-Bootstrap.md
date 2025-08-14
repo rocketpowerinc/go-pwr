@@ -4,6 +4,8 @@ Complete installation guide for **go-pwr** on macOS.
 
 ## Install Homebrew Package Manager
 
+Visit: https://brew.sh/
+
 - Run install
 ```bash
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
