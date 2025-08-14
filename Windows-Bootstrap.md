@@ -2,6 +2,13 @@
 
 Complete installation guide for **go-pwr** on Windows.
 
+## Install Flatpak and Snap Package Managers
+
+Visit: Winget should be install by default in windows 11 now
+Visit: https://chocolatey.org/install
+Visit: https://github.com/ScoopInstaller/Scoop
+
+
 ## 📋 Prerequisites
 
 ### Go Installation

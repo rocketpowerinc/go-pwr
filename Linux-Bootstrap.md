@@ -2,6 +2,11 @@
 
 Complete installation guide for **go-pwr** on Linux.
 
+## Install Flatpak and Snap Package Managers
+
+Visit: https://flathub.org/setup
+Visit: https://snapcraft.io/docs/installing-snapd
+
 ## 📋 Prerequisites
 
 ### Go Installation
