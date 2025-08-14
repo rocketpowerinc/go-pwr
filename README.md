@@ -8,214 +8,28 @@ Features beautiful syntax highlighting for script previews (when `bat` is instal
 
 ---
 
-## 📥 Installation
+## 📥 Quick Start
 
-First, install Go:
+Choose your platform for detailed installation instructions:
 
-- **Windows:**
+- **[🪟 Windows](Windows-Bootstrap.md)** - Complete Windows installation guide
+- **[🍎 macOS](MacOS-Bootstrap.md)** - Complete macOS installation guide  
+- **[🐧 Linux](Linux-Bootstrap.md)** - Complete Linux installation guide
+- **[🖥️ Server](Server-Bootstrap.md)** - Headless servers & remote environments
 
-  `winget install -e --id GoLang.Go`
-
-- **MacOS:**
-
-  `brew install go`
-
-- **Ubuntu:**
-
-  `sudo snap install go --classic`
-
-  Add to PATH if needed:
-
-  `export PATH=/snap/bin:$PATH`
-
-Then install `go-pwr`:
-
+### One-Line Install (All Platforms)
 ```bash
-go install -v github.com/rocketpowerinc/go-pwr/cmd/go-pwr@latest
+go install github.com/rocketpowerinc/go-pwr/cmd/go-pwr@latest
 ```
 
-Or build from source:
-
-```bash
-git clone https://github.com/rocketpowerinc/go-pwr.git
-cd go-pwr
-make install
-```
-
----
-
-## 🚀 Usage
-
-After installation, you can run the app from any directory:
-
+### Quick Usage
 ```bash
 go-pwr
-
 ```
-
-Or directly:
-
-```bash
-~/go/bin/go-pwr
-
-```
-
-To ensure it's always in your path:
-
-- **Windows (pwsh):**
-
-  ```bash
-  if (-not (Select-String -Path $PROFILE -Pattern '\$HOME\\go\\bin' -Quiet)) {
-  Add-Content -Path $PROFILE -Value '$env:PATH = "$HOME\go\bin;" + $env:PATH'
-  . $PROFILE
-  }
-  ```
-
-- **Linux (Bash):**
-
-  ```bash
-  echo 'export PATH="$HOME/go/bin:$PATH"' >> ~/.bashrc && source ~/.bashrc
-
-  ```
-
-- **macOS (Zsh):**
-
-  ```bash
-  echo 'export PATH="$HOME/go/bin:$PATH"' >> ~/.zshrc && source ~/.zshrc
-
-  ```
 
 ---
 
-## ⚡️ Dev Aliases
-
-### Windows (PowerShell)
-
-```powershell
-$gooAlias = @"
-# Alias to launch latest go-pwr
-function goo {
-    Set-Location $env:USERPROFILE
-    Remove-Item -Recurse -Force go-pwr -ErrorAction SilentlyContinue
-    Remove-Item -Force `"$HOME\\go\\bin\\go-pwr.exe`" -ErrorAction SilentlyContinue
-    git clone https://github.com/rocketpowerinc/go-pwr.git
-    Set-Location go-pwr
-    make install
-    & "$env:USERPROFILE\\go\\bin\\go-pwr.exe"
-}
-"@
-$gooAlias | Out-File -Append -Encoding UTF8 $PROFILE
-
-```
-
-### MacOS (Zsh)
-
-```bash
-cat << 'EOF' >> ~/.zshrc
-# Alias to launch latest go-pwr
-alias goo='
-    cd $HOME
-    rm -rf go-pwr && \
-    rm -f ~/go/bin/go-pwr && \
-    git clone https://github.com/rocketpowerinc/go-pwr.git && \
-    cd go-pwr && \
-    make install && \
-    ~/go/bin/go-pwr'
-EOF
-
-
-```
-
-### Linux (Bash)
-
-```bash
-cat << 'EOF' >> ~/.bashrc
-# Alias to launch latest go-pwr
-function goo() {
-    tmux new-session bash -c "
-        cd \$HOME &&
-        rm -rf go-pwr &&
-        rm -f ~/go/bin/go-pwr &&
-        git clone https://github.com/rocketpowerinc/go-pwr.git &&
-        cd go-pwr &&
-        make install &&
-        ~/go/bin/go-pwr;
-        exec bash"
-}
-EOF
-
-
-```
-
-Then reload your shell:
-
-- `. $PROFILE`
-- `source ~/.bashrc`
-- `source ~/.zshrc`
-
----
-
-## 🐞 Known Issues / Bugs
-
-- ⚠️ macOS default Terminal has issues with borders/syntax in `gum`; use **iTerm2** instead
-
----
-
-## 🖥️ Server Environment Support
-
-**`go-pwr`** works seamlessly on both desktop and server environments:
-
-**Desktop Environments:**
-
-- Opens scripts in new terminal windows (Windows Terminal, iTerm2, gnome-terminal, etc.)
-- Full GUI experience with syntax highlighting
-
-**Server Environments (Headless/SSH):**
-
-- **Automatic tmux integration**: On Linux server environments (no DISPLAY), `go-pwr` automatically starts in a tmux session for the best experience
-- Detects server environments (no DISPLAY variable) and launches in tmux if available
-- Uses `tmux` sessions to run scripts in separate windows
-- Falls back to direct execution if tmux is not available
-- Perfect for remote server management and automation
-
-**Server Usage Tips:**
-
-- Install `tmux` for the best experience: `sudo apt install tmux`
-- **Automatic tmux**: The main application will auto-start in tmux on Linux servers
-- Scripts run in named sessions: `tmux list-sessions` to see active sessions
-- Use `Ctrl+B, D` to detach from running scripts or the main app
-- tmux allows scripts to continue running even if you disconnect
-- **Disable auto-tmux**: Set `export GO_PWR_NO_TMUX=1` to disable automatic tmux launching
-
----
-
-### 🎨 Syntax Highlighting
-
-`go-pwr` automatically provides beautiful syntax highlighting in script previews using [`bat`](https://github.com/sharkdp/bat) when available. **If `bat` is not installed, the application gracefully falls back to plain text previews with helpful installation instructions.**
-
-**Optional: Install `bat` for enhanced syntax highlighting:**
-
-- **Windows:**
-
-  ```bash
-  winget install sharkdp.bat
-  ```
-
-- **macOS:**
-
-  ```bash
-  brew install bat
-  ```
-
-- **Ubuntu/Debian:**
-  ```bash
-  sudo apt install bat
-  ```
-  _Note: On Ubuntu, the command is known as `batcat` but `go-pwr` automatically detects this._
-
----
-
-### 🔍 Tag-Based Search
+## 🔍 Tag-Based Search
 
 **`go-pwr`** includes powerful tag-based search functionality to help you quickly find the right scripts for your needs. Scripts can be tagged with:
 
@@ -243,6 +57,7 @@ set -euo pipefail
 # Distros: Ubuntu Debian
 # Categories: utility development
 # PackageManagers: apt brew
+# Privilege: Admin User
 
 # Your script content here...
 ```
@@ -250,7 +65,6 @@ set -euo pipefail
 ### PowerShell Scripts (.ps1)
 
 ```powershell
-#! ADMIN NOT REQUIRED
 #! Description: Your script description
 
 #*Tags:
@@ -258,6 +72,7 @@ set -euo pipefail
 # Platforms: Windows
 # Categories: utility demo
 # PackageManagers: winget chocolatey
+# Privilege: Admin User
 
 # Your script content here...
 ```
