@@ -13,19 +13,8 @@ Features beautiful syntax highlighting for script previews (when `bat` is instal
 Choose your platform for detailed installation instructions:
 
 - **[🪟 Windows](Windows-Bootstrap.md)** - Complete Windows installation guide
-- **[🍎 macOS](MacOS-Bootstrap.md)** - Complete macOS installation guide  
+- **[🍎 macOS](MacOS-Bootstrap.md)** - Complete macOS installation guide
 - **[🐧 Linux](Linux-Bootstrap.md)** - Complete Linux installation guide
-- **[🖥️ Server](Server-Bootstrap.md)** - Headless servers & remote environments
-
-### One-Line Install (All Platforms)
-```bash
-go install github.com/rocketpowerinc/go-pwr/cmd/go-pwr@latest
-```
-
-### Quick Usage
-```bash
-go-pwr
-```
 
 ---
 
