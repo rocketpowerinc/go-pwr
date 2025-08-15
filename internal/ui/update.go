@@ -8,6 +8,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 
+	"github.com/rocketpowerinc/go-pwr/internal/config"
 	"github.com/rocketpowerinc/go-pwr/internal/scripts"
 	"github.com/rocketpowerinc/go-pwr/internal/ui/components"
 )
@@ -251,6 +252,9 @@ func (m Model) handleEnter() (tea.Model, tea.Cmd) {
 			if sel.Category == "color_schemes" {
 				m.optionsRightList.SetItems(m.colorSchemeItems)
 				m.vp.SetContent("Select a color scheme from the list on the left to apply it instantly!")
+			} else if sel.Category == "repository" {
+				m.optionsRightList.SetItems(m.repositoryItems)
+				m.vp.SetContent("Configure your script repository. You can use a custom repository or reset to the default RocketPowerInc scriptbin.")
 			}
 		}
 	} else if m.activeTab == 1 && m.focus == FocusPreview {
@@ -258,6 +262,10 @@ func (m Model) handleEnter() (tea.Model, tea.Cmd) {
 		if m.selectedCategory == "color_schemes" {
 			if sel, ok := m.optionsRightList.SelectedItem().(components.OptionItem); ok {
 				m.applyColorScheme(sel.Name)
+			}
+		} else if m.selectedCategory == "repository" {
+			if sel, ok := m.optionsRightList.SelectedItem().(components.OptionItem); ok {
+				m.handleRepositoryAction(sel.Action)
 			}
 		}
 	}
@@ -518,4 +526,51 @@ func (m Model) renderAboutTab() string {
 		Render(aboutContent)
 
 	return aboutPanel
+}
+
+// handleRepositoryAction handles repository-related actions
+func (m *Model) handleRepositoryAction(action string) {
+	switch action {
+	case "set_repo":
+		// For now, show a simple message about setting custom repo
+		// In a full implementation, you'd want a proper text input modal
+		m.vp.SetContent("To set a custom repository:\n\n1. The repository should be a Git repository containing scripts\n2. It should be publicly accessible or you should have appropriate credentials\n3. The URL should end with .git\n\nExample URLs:\n- https://github.com/yourusername/your-scripts.git\n- https://gitlab.com/yourusername/scripts.git\n\nNote: This feature requires a text input implementation.\nFor now, you can manually edit the config file at:\n~/.config/go-pwr/config.json\n\nAdd or modify the 'repo_url' field with your repository URL.")
+	case "reset_repo":
+		if err := config.ResetToDefaultRepo(); err != nil {
+			m.vp.SetContent("Failed to reset repository: " + err.Error())
+		} else {
+			// Update the config and refresh
+			m.config.RepoURL = config.GetDefaultRepoURL()
+			m.vp.SetContent("Repository reset to default RocketPowerInc scriptbin!\n\nRestart the application to load scripts from the default repository.")
+			// Update the repository items to show the new current repo
+			m.updateRepositoryItems()
+		}
+	case "view_repo":
+		m.vp.SetContent(fmt.Sprintf("Current Repository:\n%s\n\nThis is the Git repository that go-pwr uses to fetch scripts.\n\nDefault repository: %s", m.config.RepoURL, config.GetDefaultRepoURL()))
+	}
+}
+
+// updateRepositoryItems updates the repository items list with current config
+func (m *Model) updateRepositoryItems() {
+	m.repositoryItems = []list.Item{
+		components.OptionItem{
+			Name:   "Set Custom Repository",
+			Desc:   "Use your own script repository",
+			Action: "set_repo",
+		},
+		components.OptionItem{
+			Name:   "Reset to Default",
+			Desc:   "Use RocketPowerInc's scriptbin",
+			Action: "reset_repo",
+		},
+		components.OptionItem{
+			Name:   "Current Repository",
+			Desc:   m.config.RepoURL,
+			Action: "view_repo",
+		},
+	}
+	// Update the right list if repository category is selected
+	if m.selectedCategory == "repository" {
+		m.optionsRightList.SetItems(m.repositoryItems)
+	}
 }

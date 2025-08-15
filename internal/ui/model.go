@@ -55,6 +55,7 @@ type Model struct {
 	allScriptItems    []list.Item // Unfiltered backup for search
 	optionCategories  []list.Item
 	colorSchemeItems  []list.Item
+	repositoryItems   []list.Item
 
 	// Search
 	searchInput  *components.SearchInput
@@ -89,6 +90,11 @@ func NewModel(cfg *config.Config) *Model {
 			Desc:     "Change the application's color theme",
 			Category: "color_schemes",
 		},
+		components.CategoryItem{
+			Name:     "Repository Settings",
+			Desc:     "Configure script repository",
+			Category: "repository",
+		},
 	}
 
 	// Create color scheme items
@@ -100,6 +106,25 @@ func NewModel(cfg *config.Config) *Model {
 			Desc:   "Apply this color scheme",
 			Action: "color_scheme",
 		}
+	}
+
+	// Create repository items
+	repositoryItems := []list.Item{
+		components.OptionItem{
+			Name:   "Set Custom Repository",
+			Desc:   "Use your own script repository",
+			Action: "set_repo",
+		},
+		components.OptionItem{
+			Name:   "Reset to Default",
+			Desc:   "Use RocketPowerInc's scriptbin",
+			Action: "reset_repo",
+		},
+		components.OptionItem{
+			Name:   "Current Repository",
+			Desc:   cfg.RepoURL,
+			Action: "view_repo",
+		},
 	}
 
 	// Create lists
@@ -140,6 +165,7 @@ func NewModel(cfg *config.Config) *Model {
 		allScriptItems:    scriptItems, // Keep backup for search
 		optionCategories:  optionCategories,
 		colorSchemeItems:  colorSchemeItems,
+		repositoryItems:   repositoryItems,
 		searchInput:       searchInput,
 		searchActive:      false,
 		recursiveMode:     false, // Start in directory mode

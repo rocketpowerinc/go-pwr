@@ -2,6 +2,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 	"os/exec"
@@ -9,9 +10,50 @@ import (
 	"strings"
 
 	"github.com/rocketpowerinc/go-pwr/internal/app"
+	"github.com/rocketpowerinc/go-pwr/internal/config"
 )
 
 func main() {
+	// Parse command line flags
+	var setRepo = flag.String("set-repo", "", "Set a custom repository URL")
+	var resetRepo = flag.Bool("reset-repo", false, "Reset to the default repository")
+	var showRepo = flag.Bool("show-repo", false, "Show the current repository URL")
+	flag.Parse()
+
+	// Handle repository management flags
+	if *showRepo {
+		cfg, err := config.Load()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error loading config: %v\n", err)
+			os.Exit(1)
+		}
+		fmt.Printf("Current repository: %s\n", cfg.RepoURL)
+		fmt.Printf("Default repository: %s\n", config.GetDefaultRepoURL())
+		return
+	}
+
+	if *resetRepo {
+		if err := config.ResetToDefaultRepo(); err != nil {
+			fmt.Fprintf(os.Stderr, "Error resetting repository: %v\n", err)
+			os.Exit(1)
+		}
+		fmt.Printf("Repository reset to default: %s\n", config.GetDefaultRepoURL())
+		return
+	}
+
+	if *setRepo != "" {
+		if err := config.ValidateRepoURL(*setRepo); err != nil {
+			fmt.Fprintf(os.Stderr, "Invalid repository URL: %v\n", err)
+			os.Exit(1)
+		}
+		if err := config.SaveRepoURL(*setRepo); err != nil {
+			fmt.Fprintf(os.Stderr, "Error saving repository URL: %v\n", err)
+			os.Exit(1)
+		}
+		fmt.Printf("Repository set to: %s\n", *setRepo)
+		return
+	}
+
 	// Show tmux warning for Linux users
 	if runtime.GOOS == "linux" {
 		showTmuxWarning()
