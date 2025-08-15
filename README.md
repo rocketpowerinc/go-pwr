@@ -29,6 +29,7 @@ Choose your platform for detailed installation instructions:
 **Quick Commands:**
 - `-h`, `-help` - Show help message with all available flags
 - `-v`, `-version` - Show version information and build details
+  - FYI the "Git commit" and the "Build date" fields will only show if the app is built from source
 - View current repository: `go-pwr -show-repo`
 - Set custom repository: `go-pwr -set-repo https://github.com/yourusername/your-scripts.git`
 - Reset to default: `go-pwr -reset-repo`
