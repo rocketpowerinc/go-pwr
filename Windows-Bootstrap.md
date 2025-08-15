@@ -41,6 +41,16 @@ winget install -e Git.Git sharkdp.bat GnuWin32.Make charmbracelet.glow charmbrac
 ### Method 1: Go Install (Recommended)
 
 ```powershell
+# Install latest version
+go install -v github.com/rocketpowerinc/go-pwr/cmd/go-pwr@latest
+
+# Or install specific version (if @latest doesn't show newest)
+go install -v github.com/rocketpowerinc/go-pwr/cmd/go-pwr@v1.0.4
+```
+
+**Note**: If `@latest` installs an older version, use the specific version or clear the module cache:
+```powershell
+go clean -modcache
 go install -v github.com/rocketpowerinc/go-pwr/cmd/go-pwr@latest
 ```
 

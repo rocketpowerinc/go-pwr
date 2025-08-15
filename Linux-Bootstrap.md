@@ -51,6 +51,16 @@ sudo dnf install -y git gh jq make bat tmux curl wget glow gum
 ### Method 1: Go Install (Recommended)
 
 ```bash
+# Install latest version
+go install -v github.com/rocketpowerinc/go-pwr/cmd/go-pwr@latest
+
+# Or install specific version (if @latest doesn't show newest)
+go install -v github.com/rocketpowerinc/go-pwr/cmd/go-pwr@v1.0.4
+```
+
+**Note**: If `@latest` installs an older version, use the specific version or clear the module cache:
+```bash
+go clean -modcache
 go install -v github.com/rocketpowerinc/go-pwr/cmd/go-pwr@latest
 ```
 
