@@ -12,7 +12,7 @@ import (
 	"github.com/rocketpowerinc/go-pwr/internal/config"
 )
 
-const version = "1.0.0"
+const version = "1.0.4"
 
 // These will be set at build time using -ldflags
 var (
@@ -48,7 +48,7 @@ func main() {
 	var showVersionShort = flag.Bool("v", false, "Show version information")
 	var showHelp = flag.Bool("help", false, "Show help information")
 	var showHelpShort = flag.Bool("h", false, "Show help information")
-	
+
 	flag.Parse()
 
 	// Handle help flags
