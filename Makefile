@@ -7,38 +7,49 @@ BINARY_NAME=go-pwr
 BUILD_DIR=build
 CMD_DIR=cmd/go-pwr
 
+# Version information
+GIT_COMMIT := $(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
+BUILD_DATE := $(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
+LDFLAGS := -X main.gitCommit=$(GIT_COMMIT) -X main.buildDate=$(BUILD_DATE)
+
 # Default target
 all: build
 
 # Build the application
 build:
 	@echo "Building $(BINARY_NAME)..."
+	@echo "Git commit: $(GIT_COMMIT)"
+	@echo "Build date: $(BUILD_DATE)"
 	@mkdir -p $(BUILD_DIR)
-	@go build -o $(BUILD_DIR)/$(BINARY_NAME) ./$(CMD_DIR)
+	@go build -ldflags "$(LDFLAGS)" -o $(BUILD_DIR)/$(BINARY_NAME) ./$(CMD_DIR)
 	@echo "Build complete: $(BUILD_DIR)/$(BINARY_NAME)"
 
 # Build for multiple platforms
 build-all:
 	@echo "Building for multiple platforms..."
+	@echo "Git commit: $(GIT_COMMIT)"
+	@echo "Build date: $(BUILD_DATE)"
 	@mkdir -p $(BUILD_DIR)
 
 	@echo "Building for Windows..."
-	@GOOS=windows GOARCH=amd64 go build -o $(BUILD_DIR)/$(BINARY_NAME)-windows-amd64.exe ./$(CMD_DIR)
+	@GOOS=windows GOARCH=amd64 go build -ldflags "$(LDFLAGS)" -o $(BUILD_DIR)/$(BINARY_NAME)-windows-amd64.exe ./$(CMD_DIR)
 
 	@echo "Building for macOS..."
-	@GOOS=darwin GOARCH=amd64 go build -o $(BUILD_DIR)/$(BINARY_NAME)-darwin-amd64 ./$(CMD_DIR)
-	@GOOS=darwin GOARCH=arm64 go build -o $(BUILD_DIR)/$(BINARY_NAME)-darwin-arm64 ./$(CMD_DIR)
+	@GOOS=darwin GOARCH=amd64 go build -ldflags "$(LDFLAGS)" -o $(BUILD_DIR)/$(BINARY_NAME)-darwin-amd64 ./$(CMD_DIR)
+	@GOOS=darwin GOARCH=arm64 go build -ldflags "$(LDFLAGS)" -o $(BUILD_DIR)/$(BINARY_NAME)-darwin-arm64 ./$(CMD_DIR)
 
 	@echo "Building for Linux..."
-	@GOOS=linux GOARCH=amd64 go build -o $(BUILD_DIR)/$(BINARY_NAME)-linux-amd64 ./$(CMD_DIR)
-	@GOOS=linux GOARCH=arm64 go build -o $(BUILD_DIR)/$(BINARY_NAME)-linux-arm64 ./$(CMD_DIR)
+	@GOOS=linux GOARCH=amd64 go build -ldflags "$(LDFLAGS)" -o $(BUILD_DIR)/$(BINARY_NAME)-linux-amd64 ./$(CMD_DIR)
+	@GOOS=linux GOARCH=arm64 go build -ldflags "$(LDFLAGS)" -o $(BUILD_DIR)/$(BINARY_NAME)-linux-arm64 ./$(CMD_DIR)
 
 	@echo "Cross-platform build complete!"
 
 # Install the application
 install:
 	@echo "Installing $(BINARY_NAME)..."
-	@go install ./$(CMD_DIR)
+	@echo "Git commit: $(GIT_COMMIT)"
+	@echo "Build date: $(BUILD_DATE)"
+	@go install -ldflags "$(LDFLAGS)" ./$(CMD_DIR)
 	@echo "Installation complete!"
 
 # Clean build artifacts

@@ -14,6 +14,12 @@ import (
 
 const version = "1.0.0"
 
+// These will be set at build time using -ldflags
+var (
+	gitCommit = "unknown"
+	buildDate = "unknown"
+)
+
 func main() {
 	// Custom usage function to show our help
 	flag.Usage = func() {
@@ -54,6 +60,8 @@ func main() {
 	// Handle version flags
 	if *showVersion || *showVersionShort {
 		fmt.Printf("go-pwr v%s\n", version)
+		fmt.Printf("Git commit: %s\n", gitCommit)
+		fmt.Printf("Build date: %s\n", buildDate)
 		fmt.Printf("Built with Go %s for %s/%s\n", runtime.Version(), runtime.GOOS, runtime.GOARCH)
 		fmt.Printf("Repository: https://github.com/rocketpowerinc/go-pwr\n")
 		return
