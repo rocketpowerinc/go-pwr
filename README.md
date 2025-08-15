@@ -22,11 +22,13 @@ Choose your platform for detailed installation instructions:
 
 ---
 
-## � Repository Setup
+## 🚹 Repository Setup
 
 **`go-pwr`** uses RocketPowerInc's scriptbin by default, but you can configure it to use your own custom script repository while keeping the default as a fallback option.
 
 **Quick Commands:**
+- `-h`, `-help` - Show help message with all available flags
+- `-v`, `-version` - Show version information and build details
 - View current repository: `go-pwr -show-repo`
 - Set custom repository: `go-pwr -set-repo https://github.com/yourusername/your-scripts.git`
 - Reset to default: `go-pwr -reset-repo`
@@ -35,7 +37,8 @@ For detailed setup instructions, repository requirements, and troubleshooting, s
 
 ---
 
-## �🔍 Tag-Based Search
+
+## 🔍 Tag-Based Search
 
 **`go-pwr`** includes powerful tag-based search functionality to help you quickly find the right scripts for your needs. Scripts can be tagged with:
 

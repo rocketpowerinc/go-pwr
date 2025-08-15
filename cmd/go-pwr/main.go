@@ -1,4 +1,3 @@
-// Package main is the entry point for the go-pwr application.
 package main
 
 import (
@@ -13,12 +12,52 @@ import (
 	"github.com/rocketpowerinc/go-pwr/internal/config"
 )
 
+const version = "1.0.0"
+
 func main() {
+	// Custom usage function to show our help
+	flag.Usage = func() {
+		fmt.Fprintf(os.Stderr, "go-pwr v%s - Cross-platform script launcher\n\n", version)
+		fmt.Fprintf(os.Stderr, "USAGE:\n")
+		fmt.Fprintf(os.Stderr, "  go-pwr [flags]\n\n")
+		fmt.Fprintf(os.Stderr, "FLAGS:\n")
+		fmt.Fprintf(os.Stderr, "  -h, -help           Show this help message\n")
+		fmt.Fprintf(os.Stderr, "  -v, -version        Show version information\n")
+		fmt.Fprintf(os.Stderr, "  -show-repo          Show the current repository URL\n")
+		fmt.Fprintf(os.Stderr, "  -set-repo string    Set a custom repository URL\n")
+		fmt.Fprintf(os.Stderr, "  -reset-repo         Reset to the default repository\n\n")
+		fmt.Fprintf(os.Stderr, "EXAMPLES:\n")
+		fmt.Fprintf(os.Stderr, "  go-pwr                                           Start the interactive TUI\n")
+		fmt.Fprintf(os.Stderr, "  go-pwr -show-repo                               Show current repository\n")
+		fmt.Fprintf(os.Stderr, "  go-pwr -set-repo https://github.com/user/repo.git  Set custom repository\n")
+		fmt.Fprintf(os.Stderr, "  go-pwr -reset-repo                              Reset to default repository\n\n")
+		fmt.Fprintf(os.Stderr, "For more information, visit: https://github.com/rocketpowerinc/go-pwr\n")
+	}
+
 	// Parse command line flags
 	var setRepo = flag.String("set-repo", "", "Set a custom repository URL")
 	var resetRepo = flag.Bool("reset-repo", false, "Reset to the default repository")
 	var showRepo = flag.Bool("show-repo", false, "Show the current repository URL")
+	var showVersion = flag.Bool("version", false, "Show version information")
+	var showVersionShort = flag.Bool("v", false, "Show version information")
+	var showHelp = flag.Bool("help", false, "Show help information")
+	var showHelpShort = flag.Bool("h", false, "Show help information")
+	
 	flag.Parse()
+
+	// Handle help flags
+	if *showHelp || *showHelpShort {
+		flag.Usage()
+		return
+	}
+
+	// Handle version flags
+	if *showVersion || *showVersionShort {
+		fmt.Printf("go-pwr v%s\n", version)
+		fmt.Printf("Built with Go %s for %s/%s\n", runtime.Version(), runtime.GOOS, runtime.GOARCH)
+		fmt.Printf("Repository: https://github.com/rocketpowerinc/go-pwr\n")
+		return
+	}
 
 	// Handle repository management flags
 	if *showRepo {
