@@ -3,7 +3,7 @@
 # Get git commit hash (short)
 $gitCommit = git rev-parse --short HEAD
 if ($LASTEXITCODE -ne 0) {
-    $gitCommit = "unknown"
+  $gitCommit = "unknown"
 }
 
 # Get current date/time in ISO format
@@ -20,10 +20,11 @@ Write-Host "Build date: $buildDate" -ForegroundColor Yellow
 go build -ldflags $ldflags -o go-pwr.exe cmd/go-pwr/main.go
 
 if ($LASTEXITCODE -eq 0) {
-    Write-Host "Build successful!" -ForegroundColor Green
-    Write-Host "Testing version output:" -ForegroundColor Cyan
-    .\go-pwr.exe -v
-} else {
-    Write-Host "Build failed!" -ForegroundColor Red
-    exit 1
+  Write-Host "Build successful!" -ForegroundColor Green
+  Write-Host "Testing version output:" -ForegroundColor Cyan
+  .\go-pwr.exe -v
+}
+else {
+  Write-Host "Build failed!" -ForegroundColor Red
+  exit 1
 }
