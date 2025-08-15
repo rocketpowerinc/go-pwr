@@ -22,11 +22,37 @@ Choose your platform for detailed installation instructions:
 
 ---
 
-## 🚹 Repository Setup
+## � Dependencies
+
+**`go-pwr`** requires the following tools for optimal functionality:
+
+### Required
+
+- **Go 1.19+** - For installation via `go install`
+- **Git** - For repository operations and cloning
+
+### Platform-Specific
+
+- **Windows**: PowerShell 7+ (`pwsh`) - For running .ps1 scripts
+- **macOS**: Bash (built-in) - For running shell scripts
+- **Linux**: Bash (built-in), tmux (recommended) - For script execution
+
+### Optional (Enhanced Experience)
+
+- **`bat`** - For syntax highlighting in script previews
+- **`glow`** - For rendering markdown documentation
+- **`gum`** - For enhanced interactive elements
+
+See the platform-specific bootstrap guides for detailed installation instructions.
+
+---
+
+## 🔧 Repository Setup
 
 **`go-pwr`** uses RocketPowerInc's scriptbin by default, but you can configure it to use your own custom script repository while keeping the default as a fallback option.
 
 **Quick Commands:**
+
 - `-h`, `-help` - Show help message with all available flags
 - `-v`, `-version` - Show version information and build details
   - FYI the "Git commit" and the "Build date" fields will only show if the app is built from source (Very good for when I and developing the app)
@@ -37,7 +63,6 @@ Choose your platform for detailed installation instructions:
 For detailed setup instructions, repository requirements, and troubleshooting, see **[Repository Setup Guide](REPOSITORY_SETUP.md)**.
 
 ---
-
 
 ## 🔍 Tag-Based Search
 

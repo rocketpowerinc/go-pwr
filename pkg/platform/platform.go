@@ -44,7 +44,7 @@ func ExecuteScript(scriptPath, scriptName string) error {
 
 	if IsWindows() {
 		if strings.HasSuffix(scriptName, ".ps1") {
-			cmd = exec.Command("cmd", "/C", "start", "powershell", "-NoExit", "-Command", "Clear-Host; "+scriptPath+"; Write-Host ''; Read-Host 'Press Enter to exit'")
+			cmd = exec.Command("cmd", "/C", "start", "pwsh", "-NoExit", "-Command", "Clear-Host; "+scriptPath+"; Write-Host ''; Read-Host 'Press Enter to exit'")
 		} else {
 			cmd = exec.Command("cmd", "/C", "start", "cmd", "/K", "cls && bash -l "+scriptPath+" & pause")
 		}

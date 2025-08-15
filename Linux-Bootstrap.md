@@ -37,13 +37,21 @@ source ~/.bashrc
 ## 📋 Dependencies
 
 ```bash
-# Ubuntu/Debian
+# Ubuntu/Debian - Core dependencies
 sudo apt update && sudo apt install -y git gh jq make bat tmux curl wget glow gum
+
+# Optional: PowerShell 7+ for .ps1 script support
+wget -q https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb
+sudo dpkg -i packages-microsoft-prod.deb
+sudo apt update && sudo apt install -y powershell
 ```
 
 ```bash
-# Fedora
+# Fedora - Core dependencies
 sudo dnf install -y git gh jq make bat tmux curl wget glow gum
+
+# Optional: PowerShell 7+ for .ps1 script support
+sudo dnf install -y powershell
 ```
 
 ## 🚀 Installation Methods

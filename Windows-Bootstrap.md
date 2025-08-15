@@ -16,6 +16,17 @@ Visit: https://github.com/ScoopInstaller/Scoop
 winget install -e GoLang.Go
 ```
 
+### PowerShell 7+ Installation (Required)
+
+**`go-pwr` requires PowerShell 7+ (pwsh) for running PowerShell scripts.**
+
+```powershell
+# Install PowerShell 7+
+winget install Microsoft.PowerShell
+```
+
+**Note**: Windows PowerShell 5.1 (built-in) is not sufficient. You need PowerShell 7+ (`pwsh.exe`) for full compatibility.
+
 ## 🔧 Path Configuration
 
 ### Add Go bin to PATH (PowerShell Profile)
@@ -30,9 +41,22 @@ if (-not (Select-String -Path $PROFILE -Pattern '\$HOME\\go\\bin' -Quiet)) {
 ## 📋 Dependencies
 
 ```powershell
-# Install all required dependencies
-winget install -e Git.Git sharkdp.bat GnuWin32.Make charmbracelet.glow charmbracelet.gum GitHub.cli jqlang.jq
+# Install all required dependencies (including PowerShell 7+ if not already installed)
+winget install -e Git.Git Microsoft.PowerShell sharkdp.bat GnuWin32.Make charmbracelet.glow charmbracelet.gum GitHub.cli jqlang.jq
 ```
+
+**Core Dependencies:**
+
+- **Git** - Repository operations
+- **PowerShell 7+** - Required for .ps1 script execution
+- **Go** - For building from source
+
+**Optional Dependencies:**
+
+- **bat** - Syntax highlighting for script previews
+- **Make** - For using Makefile build commands
+- **glow/gum** - Enhanced CLI experience
+- **GitHub CLI** - For automated releases
 
 ## 🚀 Installation Methods
 
@@ -114,6 +138,20 @@ Then reload your profile:
 - **"go command not found"**: Restart your terminal after installing Go
 - **PATH issues**: Use the path configuration steps above
 - **Execution Policy**: Run `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser` if needed
+- **"pwsh command not found"**: Install PowerShell 7+ with `winget install Microsoft.PowerShell`
+- **PowerShell scripts fail**: Ensure you have PowerShell 7+ (`pwsh.exe`), not just Windows PowerShell 5.1
+
+### PowerShell Version Check
+
+Verify you have the correct PowerShell version:
+
+```powershell
+# Check PowerShell 7+ is installed
+pwsh --version
+
+# Should show version 7.0 or higher
+# If command not found, install with: winget install Microsoft.PowerShell
+```
 
 ### Terminal Recommendations
 

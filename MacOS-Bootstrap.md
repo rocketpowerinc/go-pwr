@@ -38,7 +38,11 @@ echo 'export PATH="$HOME/go/bin:$PATH"' >> ~/.zshrc && source ~/.zshrc
 ## 📋 Dependencies
 
 ```bash
+# Core dependencies
 brew install git gh jq make bat curl wget glow gum
+
+# Optional: PowerShell 7+ for .ps1 script support
+brew install powershell
 ```
 
 ## 🚀 Installation Methods
