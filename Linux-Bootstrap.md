@@ -59,6 +59,7 @@ go install -v github.com/rocketpowerinc/go-pwr/cmd/go-pwr@v1.0.4
 ```
 
 **Note**: If `@latest` installs an older version, use the specific version or clear the module cache:
+
 ```bash
 go clean -modcache
 go install -v github.com/rocketpowerinc/go-pwr/cmd/go-pwr@latest
@@ -138,7 +139,9 @@ go-pwr
 ```
 
 ### Disable Warning (if needed)
+
 - Add to bashrc so it persists
+
 ```bash
 export GO_PWR_NO_TMUX_WARNING=1
 go-pwr

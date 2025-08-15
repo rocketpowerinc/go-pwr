@@ -8,7 +8,6 @@ Visit: Winget should be install by default in windows 11 now
 Visit: https://chocolatey.org/install
 Visit: https://github.com/ScoopInstaller/Scoop
 
-
 ## 📋 Prerequisites
 
 ### Go Installation
@@ -35,7 +34,6 @@ if (-not (Select-String -Path $PROFILE -Pattern '\$HOME\\go\\bin' -Quiet)) {
 winget install -e Git.Git sharkdp.bat GnuWin32.Make charmbracelet.glow charmbracelet.gum GitHub.cli jqlang.jq
 ```
 
-
 ## 🚀 Installation Methods
 
 ### Method 1: Go Install (Recommended)
@@ -49,6 +47,7 @@ go install -v github.com/rocketpowerinc/go-pwr/cmd/go-pwr@v1.0.4
 ```
 
 **Note**: If `@latest` installs an older version, use the specific version or clear the module cache:
+
 ```powershell
 go clean -modcache
 go install -v github.com/rocketpowerinc/go-pwr/cmd/go-pwr@latest
@@ -67,7 +66,6 @@ git clone https://github.com/rocketpowerinc/go-pwr.git
 cd go-pwr
 make install
 ```
-
 
 ## 🚀 Usage
 

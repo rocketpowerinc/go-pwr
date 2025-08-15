@@ -54,6 +54,7 @@ go install -v github.com/rocketpowerinc/go-pwr/cmd/go-pwr@v1.0.4
 ```
 
 **Note**: If `@latest` installs an older version, use the specific version or clear the module cache:
+
 ```bash
 go clean -modcache
 go install -v github.com/rocketpowerinc/go-pwr/cmd/go-pwr@latest
