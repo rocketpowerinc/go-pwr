@@ -135,6 +135,9 @@ function goo {
     Remove-Item -Force `"$HOME\\go\\bin\\go-pwr.exe`" -ErrorAction SilentlyContinue
     git clone https://github.com/rocketpowerinc/go-pwr.git
     Set-Location go-pwr
+    go clean -modcache
+    Remove-Item go.sum -ErrorAction SilentlyContinue
+    go mod tidy
     make install
     & "$env:USERPROFILE\\go\\bin\\go-pwr.exe"
 }
