@@ -4,6 +4,10 @@
 *.so
 *.dylib
 
+# Ignore build directory
+build/
+dist/
+
 # Ignore test binary
 *.test
 
