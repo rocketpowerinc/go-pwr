@@ -42,6 +42,21 @@ brew install git gh jq make bat curl wget glow gum
 brew install powershell
 ```
 
+**Core Dependencies:**
+
+- **Git** - Repository operations
+- **GitHub CLI (gh)** - For automated releases
+- **jq** - JSON processing for scripts
+- **Make** - For using Makefile build commands
+- **Go** - For building from source
+
+**Optional Dependencies:**
+
+- **bat** - Syntax highlighting for script previews
+- **curl/wget** - Download utilities
+- **glow/gum** - Enhanced CLI experience
+- **PowerShell 7+** - For .ps1 script support
+
 # 🚀 Installation Methods
 
 ### Method 1: Go Install (Recommended)

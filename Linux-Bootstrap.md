@@ -54,6 +54,22 @@ sudo dnf install -y git gh jq make bat tmux curl wget glow gum
 sudo dnf install -y powershell
 ```
 
+**Core Dependencies:**
+
+- **Git** - Repository operations
+- **GitHub CLI (gh)** - For automated releases
+- **jq** - JSON processing for scripts
+- **Make** - For using Makefile build commands
+- **Go** - For building from source
+
+**Optional Dependencies:**
+
+- **bat** - Syntax highlighting for script previews
+- **tmux** - Terminal multiplexer (recommended for Linux)
+- **curl/wget** - Download utilities
+- **glow/gum** - Enhanced CLI experience
+- **PowerShell 7+** - For .ps1 script support
+
 # 🚀 Installation Methods
 
 ### Method 1: Go Install (Recommended)
