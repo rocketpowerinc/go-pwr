@@ -63,14 +63,14 @@ winget install -e Git.Git Microsoft.PowerShell sharkdp.bat GnuWin32.Make charmbr
 ### Method 1: Go Install (Recommended)
 
 ```powershell
-# Install latest version (checksum issues resolved as of v1.0.7)
+# Install latest version 
 go install -v github.com/rocketpowerinc/go-pwr/cmd/go-pwr@latest
 
 # Or install specific version
 go install -v github.com/rocketpowerinc/go-pwr/cmd/go-pwr@v1.0.7
 ```
 
-**Note**: If you encounter checksum mismatch errors (common after tag updates), use this workaround:
+**Note**: If you encounter checksum mismatch errors (common with Go module updates), use this workaround:
 
 ```powershell
 # Temporary workaround for checksum mismatch errors
@@ -92,7 +92,20 @@ go install -v github.com/rocketpowerinc/go-pwr/cmd/go-pwr@latest
 ```powershell
 git clone https://github.com/rocketpowerinc/go-pwr.git
 cd go-pwr
+
+# If you encounter checksum mismatch errors, clear the module cache first:
+go clean -modcache
+
+# Then run make install
 make install
+```
+
+**Note**: If you still encounter checksum mismatch errors when building from source, use this workaround:
+
+```powershell
+# Clear module cache and use direct proxy
+go clean -modcache
+$env:GOPROXY="direct"; $env:GOSUMDB="off"; make install
 ```
 
 ## 🚀 Usage
