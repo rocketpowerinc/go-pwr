@@ -8,8 +8,9 @@ BUILD_DIR=build
 CMD_DIR=cmd/go-pwr
 
 # Version information
-GIT_COMMIT := $(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
-BUILD_DATE := $(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
+# For Windows compatibility, use simpler commands that work with Windows make
+GIT_COMMIT := $(shell git rev-parse --short HEAD 2>nul || echo unknown)
+BUILD_DATE := $(shell powershell -NoProfile -Command "[DateTime]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ssZ')" 2>nul || echo unknown)
 LDFLAGS := -X main.gitCommit=$(GIT_COMMIT) -X main.buildDate=$(BUILD_DATE)
 
 # Default target
