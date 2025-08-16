@@ -20,6 +20,15 @@ Choose your platform for detailed installation instructions:
 - **[🍎 MacOS](MacOS-Bootstrap.md)** - Complete macOS installation guide
 - **[🐧 Linux](Linux-Bootstrap.md)** - Complete Linux installation guide
 
+## Automatic Bootstraps
+- Windows
+`iex (irm "https://raw.githubusercontent.com/rocketpowerinc/go-pwr/refs/heads/main/bootstrap-windows.ps1")`
+
+- MacOS
+`curl -fsSL "https://raw.githubusercontent.com/rocketpowerinc/go-pwr/main/bootstrap-macos.sh" | bash`
+
+- Linux
+`curl -fsSL "https://raw.githubusercontent.com/rocketpowerinc/go-pwr/main/bootstrap-linux.sh" | bash`
 
 ---
 

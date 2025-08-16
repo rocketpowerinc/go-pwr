@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Linux Bootstrap Script for go-pwr
 # Automates installation of go-pwr and all dependencies on Linux
 
