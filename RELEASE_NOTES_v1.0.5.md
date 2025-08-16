@@ -5,12 +5,14 @@
 ## 🐛 Bug Fixes
 
 ### Windows Makefile Compatibility
+
 - **Fixed Windows date command compatibility**: Updated Makefile to use PowerShell-based date formatting instead of Unix `date` command
 - **Fixed shell redirection syntax**: Changed from Unix-style `2>/dev/null` to Windows-style `2>nul`
 - **Improved git commit detection**: Enhanced git command compatibility for Windows make environment
 - **Resolved "system cannot find path" errors**: Windows users can now successfully run `make install` with proper version information
 
 ### Build System Improvements
+
 - **PowerShell compatibility**: Updated to use `powershell -NoProfile` for reliable cross-platform execution
 - **Version injection**: Restored proper git commit hash and build date injection on Windows builds
 - **Shell command reliability**: Improved shell command execution in Windows make environment
@@ -37,6 +39,7 @@
 ## 🔧 Installation
 
 ### Go Install (Recommended)
+
 ```bash
 # Install latest version
 go install -v github.com/rocketpowerinc/go-pwr/cmd/go-pwr@latest
@@ -46,6 +49,7 @@ go install -v github.com/rocketpowerinc/go-pwr/cmd/go-pwr@v1.0.5
 ```
 
 ### Direct Download
+
 1. Download the appropriate binary for your platform from the assets above
 2. Make it executable (Unix-like systems): `chmod +x go-pwr-*`
 3. Move to a directory in your PATH or run directly
