@@ -62,13 +62,17 @@ sudo dnf install -y powershell
 # Install latest version
 go install -v github.com/rocketpowerinc/go-pwr/cmd/go-pwr@latest
 
-# Or install specific version (if @latest doesn't show newest)
-go install -v github.com/rocketpowerinc/go-pwr/cmd/go-pwr@v1.0.4
+# Or install specific version
+go install -v github.com/rocketpowerinc/go-pwr/cmd/go-pwr@v1.0.7
 ```
 
-**Note**: If `@latest` installs an older version, use the specific version or clear the module cache:
+**Note**: If you encounter checksum mismatch errors (common with Go module updates), use this workaround:
 
 ```bash
+# Temporary workaround for checksum mismatch errors
+GOPROXY=direct GOSUMDB=off go install -v github.com/rocketpowerinc/go-pwr/cmd/go-pwr@latest
+
+# Alternative: Clear module cache and retry
 go clean -modcache
 go install -v github.com/rocketpowerinc/go-pwr/cmd/go-pwr@latest
 ```
@@ -89,7 +93,20 @@ sudo mv go-pwr-linux-amd64 /usr/local/bin/go-pwr
 ```bash
 git clone https://github.com/rocketpowerinc/go-pwr.git
 cd go-pwr
+
+# If you encounter checksum mismatch errors, clear the module cache first:
+go clean -modcache
+
+# Then run make install
 make install
+```
+
+**Note**: If you still encounter checksum mismatch errors when building from source, use this workaround:
+
+```bash
+# Clear module cache and use direct proxy
+go clean -modcache
+GOPROXY=direct GOSUMDB=off make install
 ```
 
 ## ⚡ Dev Alias (Advanced Users)
@@ -106,6 +123,9 @@ function goo() {
         rm -f ~/go/bin/go-pwr &&
         git clone https://github.com/rocketpowerinc/go-pwr.git &&
         cd go-pwr &&
+        go clean -modcache &&
+        rm -f go.sum &&
+        go mod tidy &&
         make install &&
         ~/go/bin/go-pwr;
         exec bash"
