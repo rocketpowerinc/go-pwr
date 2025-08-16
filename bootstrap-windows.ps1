@@ -30,9 +30,6 @@ Write-Host "🚀 Windows Bootstrap Script for go-pwr" -ForegroundColor Green
 Write-Host "=======================================" -ForegroundColor Green
 Write-Host ""
 
-# Check if running as administrator for some installations
-$isAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")
-
 if ($InstallDependencies) {
   Write-Host "📦 Installing Dependencies..." -ForegroundColor Yellow
   Write-Host ""
@@ -100,7 +97,7 @@ Write-Host ""
 # Try normal installation first
 Write-Host "Attempting normal installation..." -ForegroundColor Cyan
 try {
-  $result = go install -v github.com/rocketpowerinc/go-pwr/cmd/go-pwr@latest 2>&1
+  go install -v github.com/rocketpowerinc/go-pwr/cmd/go-pwr@latest 2>&1 | Out-Null
   if ($LASTEXITCODE -eq 0) {
     Write-Host "✓ go-pwr installed successfully" -ForegroundColor Green
   }
