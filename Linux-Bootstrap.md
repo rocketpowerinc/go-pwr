@@ -27,7 +27,7 @@ sudo apt install golang-go
 sudo dnf install golang
 ```
 
-#### Add Go bin to PATH
+Add Go bin to PATH
 
 ```bash
 echo 'export PATH="$HOME/go/bin:$PATH"' >> ~/.bashrc

@@ -27,9 +27,7 @@ winget install Microsoft.PowerShell
 
 **Note**: Windows PowerShell 5.1 (built-in) is not sufficient. You need PowerShell 7+ (`pwsh.exe`) for full compatibility.
 
-## 🔧 Path Configuration
-
-### Export Go bin to PATH (PowerShell Profile)
+Export Go bin to PATH (PowerShell Profile)
 
 ```powershell
 if (-not (Select-String -Path $PROFILE -Pattern '\$HOME\\go\\bin' -Quiet)) {

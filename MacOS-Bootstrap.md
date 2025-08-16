@@ -26,10 +26,7 @@ eval "$(/opt/homebrew/bin/brew shellenv)"
 ```bash
 brew install go
 ```
-
-## 🔧 Path Configuration
-
-### Add Go bin to PATH (Zsh - default on modern macOS)
+Add Go bin to PATH (Zsh - default on modern macOS)
 
 ```bash
 echo 'export PATH="$HOME/go/bin:$PATH"' >> ~/.zshrc && source ~/.zshrc

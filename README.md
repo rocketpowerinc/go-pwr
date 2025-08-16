@@ -20,30 +20,6 @@ Choose your platform for detailed installation instructions:
 - **[🍎 macOS](MacOS-Bootstrap.md)** - Complete macOS installation guide
 - **[🐧 Linux](Linux-Bootstrap.md)** - Complete Linux installation guide
 
----
-
-## � Dependencies
-
-**`go-pwr`** requires the following tools for optimal functionality:
-
-### Required
-
-- **Go 1.19+** - For installation via `go install`
-- **Git** - For repository operations and cloning
-
-### Platform-Specific
-
-- **Windows**: PowerShell 7+ (`pwsh`) - For running .ps1 scripts
-- **macOS**: Bash (built-in) - For running shell scripts
-- **Linux**: Bash (built-in), tmux (recommended) - For script execution
-
-### Optional (Enhanced Experience)
-
-- **`bat`** - For syntax highlighting in script previews
-- **`glow`** - For rendering markdown documentation
-- **`gum`** - For enhanced interactive elements
-
-See the platform-specific bootstrap guides for detailed installation instructions.
 
 ---
 
@@ -53,9 +29,9 @@ See the platform-specific bootstrap guides for detailed installation instruction
 
 **Quick Commands:**
 
-- `-h`, `-help` - Show help message with all available flags
-- `-v`, `-version` - Show version information and build details
-  - FYI the "Git commit" and the "Build date" fields will only show if the app is built from source (Very good for when I and developing the app)
+- Show help message with all available flags: `-h`, `-help`
+- Show version information and build details: `-v`, `-version`
+  - FYI the "Git commit" and the "Build date" fields will only show if the app is built from source with "make" (Very good for when I and developing the app)
 - View current repository: `go-pwr -show-repo`
 - Set custom repository: `go-pwr -set-repo https://github.com/yourusername/your-scripts.git`
 - Reset to default: `go-pwr -reset-repo`
@@ -75,6 +51,13 @@ For detailed setup instructions, repository requirements, and troubleshooting, s
 - Search results update in real-time as you type
 - Press `Enter` to apply search or `Escape` to cancel
 - Press `Escape` again to clear search and show all scripts
+- **Tagging Guidelines:**
+- Start the tags section with `#*Tags:` on its own line
+- Each category starts with `# CategoryName:` followed by space-separated tags
+- Use lowercase for consistency (parser handles case-insensitivity)
+- Common categories: `Languages`, `Platforms`, `Distros`, `Categories`, `PackageManagers`, `DesktopEnvironments`, `Architectures`
+- Add as many or as few tags as appropriate for your script
+
 
 ## 🏷️ Tagging Your Scripts
 
@@ -111,14 +94,6 @@ set -euo pipefail
 
 # Your script content here...
 ```
-
-**Tagging Guidelines:**
-
-- Start the tags section with `#*Tags:` on its own line
-- Each category starts with `# CategoryName:` followed by space-separated tags
-- Use lowercase for consistency (parser handles case-insensitivity)
-- Common categories: `Languages`, `Platforms`, `Distros`, `Categories`, `PackageManagers`, `DesktopEnvironments`, `Architectures`
-- Add as many or as few tags as appropriate for your script
 
 ## 🔄 Recursive vs Directory Mode
 
