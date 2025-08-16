@@ -63,7 +63,7 @@ winget install -e Git.Git Microsoft.PowerShell sharkdp.bat GnuWin32.Make charmbr
 ### Method 1: Go Install (Recommended)
 
 ```powershell
-# Install latest version 
+# Install latest version
 go install -v github.com/rocketpowerinc/go-pwr/cmd/go-pwr@latest
 
 # Or install specific version
