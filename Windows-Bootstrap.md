@@ -29,7 +29,7 @@ winget install Microsoft.PowerShell
 
 ## 🔧 Path Configuration
 
-### Add Go bin to PATH (PowerShell Profile)
+### Export Go bin to PATH (PowerShell Profile)
 
 ```powershell
 if (-not (Select-String -Path $PROFILE -Pattern '\$HOME\\go\\bin' -Quiet)) {
