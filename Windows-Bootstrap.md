@@ -10,22 +10,13 @@ Visit: https://github.com/ScoopInstaller/Scoop
 
 ## 📋 Prerequisites
 
-### Go Installation
+
+### Go Installation + pwsh 7+
+**Note**: Windows PowerShell 5.1 (built-in) is not sufficient. You need PowerShell 7+ (`pwsh.exe`) for full compatibility.
 
 ```bash
-winget install -e GoLang.Go
+winget install -e GoLang.Go Microsoft.PowerShell
 ```
-
-### PowerShell 7+ Installation (Required)
-
-**`go-pwr` requires PowerShell 7+ (pwsh) for running PowerShell scripts.**
-
-```powershell
-# Install PowerShell 7+
-winget install Microsoft.PowerShell
-```
-
-**Note**: Windows PowerShell 5.1 (built-in) is not sufficient. You need PowerShell 7+ (`pwsh.exe`) for full compatibility.
 
 Export Go bin to PATH (PowerShell Profile)
 
@@ -56,7 +47,7 @@ winget install -e Git.Git Microsoft.PowerShell sharkdp.bat GnuWin32.Make charmbr
 - **glow/gum** - Enhanced CLI experience
 - **GitHub CLI** - For automated releases
 
-## 🚀 Installation Methods
+# 🚀 Installation Methods
 
 ### Method 1: Go Install (Recommended)
 

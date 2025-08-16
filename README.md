@@ -17,7 +17,7 @@ Features beautiful syntax highlighting for script previews (when `bat` is instal
 Choose your platform for detailed installation instructions:
 
 - **[🪟 Windows](Windows-Bootstrap.md)** - Complete Windows installation guide
-- **[🍎 macOS](MacOS-Bootstrap.md)** - Complete macOS installation guide
+- **[🍎 MacOS](MacOS-Bootstrap.md)** - Complete macOS installation guide
 - **[🐧 Linux](Linux-Bootstrap.md)** - Complete Linux installation guide
 
 

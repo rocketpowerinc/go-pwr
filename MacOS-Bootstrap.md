@@ -42,7 +42,7 @@ brew install git gh jq make bat curl wget glow gum
 brew install powershell
 ```
 
-## 🚀 Installation Methods
+# 🚀 Installation Methods
 
 ### Method 1: Go Install (Recommended)
 

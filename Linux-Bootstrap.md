@@ -54,7 +54,7 @@ sudo dnf install -y git gh jq make bat tmux curl wget glow gum
 sudo dnf install -y powershell
 ```
 
-## 🚀 Installation Methods
+# 🚀 Installation Methods
 
 ### Method 1: Go Install (Recommended)
 
