@@ -26,6 +26,7 @@ eval "$(/opt/homebrew/bin/brew shellenv)"
 ```bash
 brew install go
 ```
+
 Add Go bin to PATH (Zsh - default on modern macOS)
 
 ```bash
@@ -148,7 +149,6 @@ function goo() {
 }
 EOF
 ```
-
 
 Then reload your shell:
 
