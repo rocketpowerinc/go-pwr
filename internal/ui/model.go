@@ -9,6 +9,7 @@ import (
 	"github.com/charmbracelet/bubbles/viewport"
 
 	"github.com/rocketpowerinc/go-pwr/internal/config"
+	"github.com/rocketpowerinc/go-pwr/internal/git"
 	"github.com/rocketpowerinc/go-pwr/internal/scripts"
 	"github.com/rocketpowerinc/go-pwr/internal/ui/components"
 	"github.com/rocketpowerinc/go-pwr/internal/ui/styles"
@@ -22,6 +23,7 @@ const (
 	FocusList FocusArea = iota
 	FocusPreview
 	FocusSearch
+	FocusRepositoryInput
 )
 
 // ParentNav tracks navigation state for going back to parent directories.
@@ -62,6 +64,12 @@ type Model struct {
 	searchActive bool
 	recursiveMode bool // Toggle for recursive vs directory view
 
+	// Repository input
+	repositoryInput       *components.RepositoryInput
+	repositoryInputActive bool
+	repositoryViewActive  bool // For "Current Repository" view
+	repositoryResetActive bool // For "Reset to Default" confirmation/result
+
 	// Delegates
 	scriptDelegate   *components.ScriptDelegate
 	optionDelegate   *components.OptionDelegate
@@ -86,7 +94,7 @@ func NewModel(cfg *config.Config) *Model {
 	// Create option categories
 	optionCategories := []list.Item{
 		components.CategoryItem{
-			Name:     "Color Schemes",
+			Name:     "Themes",
 			Desc:     "Change the application's color theme",
 			Category: "color_schemes",
 		},
@@ -139,6 +147,9 @@ func NewModel(cfg *config.Config) *Model {
 	// Create search input
 	searchInput := components.NewSearchInput(theme)
 
+	// Create repository input
+	repositoryInput := components.NewRepositoryInput(theme)
+
 	// Set initial preview if there are scripts
 	if len(scriptItems) > 0 {
 		if s, ok := scriptItems[0].(scripts.Item); ok && s.IsScript() {
@@ -166,10 +177,14 @@ func NewModel(cfg *config.Config) *Model {
 		optionCategories:  optionCategories,
 		colorSchemeItems:  colorSchemeItems,
 		repositoryItems:   repositoryItems,
-		searchInput:       searchInput,
-		searchActive:      false,
-		recursiveMode:     false, // Start in directory mode
-		scriptDelegate:    scriptDelegate,
+		searchInput:           searchInput,
+		searchActive:          false,
+		recursiveMode:         false, // Start in directory mode
+		repositoryInput:       repositoryInput,
+		repositoryInputActive: false,
+		repositoryViewActive:  false,
+		repositoryResetActive: false,
+		scriptDelegate:        scriptDelegate,
 		optionDelegate:    optionDelegate,
 		categoryDelegate:  categoryDelegate,
 	}
@@ -265,8 +280,15 @@ func (m *Model) switchTab(tabIndex int) {
 	m.activeTab = tabIndex
 	m.focus = FocusList // Reset focus when switching tabs
 
+	// Reset any active input states
+	m.repositoryInputActive = false
+	m.repositoryInput.SetActive(false)
+	m.repositoryViewActive = false
+	m.repositoryResetActive = false
+
 	switch tabIndex {
 	case 0: // Scripts tab
+		m.list.SetDelegate(m.scriptDelegate)
 		m.list.SetItems(m.scriptItems)
 		if sel, ok := m.list.SelectedItem().(scripts.Item); ok && sel.IsScript() {
 			content := scripts.ReadContentWithHighlighting(sel.Description(), m.cache)
@@ -275,6 +297,7 @@ func (m *Model) switchTab(tabIndex int) {
 			m.vp.SetContent("Select a script to preview...")
 		}
 	case 1: // Options tab
+		m.list.SetDelegate(m.categoryDelegate)
 		// Copy items from categoryList to main list for display
 		items := make([]list.Item, len(m.optionCategories))
 		copy(items, m.optionCategories)
@@ -389,4 +412,41 @@ func (m *Model) applyColorScheme(schemeName string) {
 			break
 		}
 	}
+}
+
+// refreshRepository refreshes the repository and reloads scripts immediately.
+func (m *Model) refreshRepository() error {
+	// Ensure repository is cloned/updated with new config
+	if err := git.EnsureRepository(m.config); err != nil {
+		return err
+	}
+
+	// Reload script items from the new repository location
+	m.currentPath = m.config.ScriptbinPath
+	newItems := scripts.GetItems(m.config.ScriptbinPath)
+	m.scriptItems = newItems
+	m.allScriptItems = newItems
+	
+	// Clear parent paths since we're starting fresh
+	m.parentPaths = []ParentNav{}
+	
+	// If we're currently on the scripts tab, update the list immediately
+	if m.activeTab == 0 {
+		m.list.SetDelegate(m.scriptDelegate)
+		m.list.SetItems(m.scriptItems)
+		m.list.ResetSelected()
+		// Update preview if there are scripts
+		if len(m.scriptItems) > 0 {
+			if s, ok := m.scriptItems[0].(scripts.Item); ok && s.IsScript() {
+				content := scripts.ReadContentWithHighlighting(s.Description(), m.cache)
+				m.vp.SetContent(content)
+			} else {
+				m.vp.SetContent("Select a script to preview...")
+			}
+		} else {
+			m.vp.SetContent("No scripts found in repository.")
+		}
+	}
+	
+	return nil
 }

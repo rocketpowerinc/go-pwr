@@ -46,7 +46,20 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		// Handle escape key with multiple detection methods
 		if msg.String() == "escape" || msg.Type == tea.KeyEscape {
-			if m.searchActive && m.activeTab == 0 {
+			if m.repositoryInputActive && m.activeTab == 1 {
+				m.repositoryInputActive = false
+				m.repositoryInput.SetActive(false)
+				m.focus = FocusPreview
+				return m, nil
+			} else if m.repositoryViewActive && m.activeTab == 1 {
+				m.repositoryViewActive = false
+				m.focus = FocusPreview
+				return m, nil
+			} else if m.repositoryResetActive && m.activeTab == 1 {
+				m.repositoryResetActive = false
+				m.focus = FocusPreview
+				return m, nil
+			} else if m.searchActive && m.activeTab == 0 {
 				m.searchActive = false
 				m.searchInput.SetActive(false)
 				m.focus = FocusList
@@ -73,6 +86,50 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				cmd = m.searchInput.Update(msg)
 				// Live search as user types
 				m.applySearch()
+				return m, cmd
+			}
+		}
+
+		// Handle repository input if repository input is active
+		if m.repositoryInputActive && m.activeTab == 1 {
+			switch msg.String() {
+			case "enter":
+				// Validate and save the repository URL
+				if m.repositoryInput.Validate() {
+					url := m.repositoryInput.Value()
+					
+					// Show loading message
+					m.vp.SetContent("Saving and loading new repository...\n\nPlease wait while we switch to: " + url)
+					
+					if err := config.SaveRepoURL(url); err != nil {
+						m.repositoryInput.SetError("Failed to save repository: " + err.Error())
+						return m, nil
+					} else {
+						// Update the config immediately
+						m.config.RepoURL = url
+						m.repositoryInputActive = false
+						m.repositoryInput.SetActive(false)
+						m.repositoryResetActive = true // Show result in dedicated screen
+						m.repositoryViewActive = false
+						m.focus = FocusPreview
+						
+						// Try to refresh repository immediately
+						if err := m.refreshRepository(); err != nil {
+							m.vp.SetContent("✅ Repository saved, but failed to load scripts: " + err.Error() + "\n\nNew repository: " + url + "\n\nPlease restart the application to see the changes.")
+						} else {
+							m.vp.SetContent(fmt.Sprintf("✅ Custom Repository Successfully Set!\n\n🔄 New Repository URL:\n%s\n\n📁 Scripts Location:\n%s\n\n✨ Scripts have been refreshed and are ready to use.\nSwitch to the Scripts tab to see your custom content.", 
+								url, m.config.ScriptbinPath))
+						}
+						
+						// Update the repository items to show the new current repo
+						m.updateRepositoryItems()
+						return m, nil
+					}
+				}
+				return m, nil
+			default:
+				// Pass all other keys (except escape, handled above) to repository input
+				cmd = m.repositoryInput.Update(msg)
 				return m, cmd
 			}
 		}
@@ -145,6 +202,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// Update search input if active
 	if m.searchActive {
 		m.searchInput.Update(msg)
+	}
+
+	// Update repository input if active
+	if m.repositoryInputActive {
+		m.repositoryInput.Update(msg)
 	}
 
 	m.list, _ = m.list.Update(msg)
@@ -227,8 +289,11 @@ func (m Model) handleUpDown(msg tea.KeyMsg, isUp bool) (tea.Model, tea.Cmd) {
 		} else {
 			m.vp.LineDown(1)
 		}
-	} else if m.focus == FocusPreview && m.activeTab == 1 {
+	} else if m.focus == FocusPreview && m.activeTab == 1 && !m.repositoryInputActive {
 		m.optionsRightList, cmd = m.optionsRightList.Update(msg)
+	} else if m.focus == FocusRepositoryInput && m.activeTab == 1 {
+		// Repository input handles its own navigation
+		cmd = m.repositoryInput.Update(msg)
 	}
 
 	return m, cmd
@@ -251,10 +316,14 @@ func (m Model) handleEnter() (tea.Model, tea.Cmd) {
 			m.selectedCategory = sel.Category
 			if sel.Category == "color_schemes" {
 				m.optionsRightList.SetItems(m.colorSchemeItems)
-				m.vp.SetContent("Select a color scheme from the list on the left to apply it instantly!")
+				m.vp.SetContent("Select a color scheme from the list on the right to apply it instantly!\n\nUse Ctrl+Right or Ctrl+L to switch to the right pane.")
+				// Automatically switch focus to right pane for easier navigation
+				m.focus = FocusPreview
 			} else if sel.Category == "repository" {
 				m.optionsRightList.SetItems(m.repositoryItems)
-				m.vp.SetContent("Configure your script repository. You can use a custom repository or reset to the default RocketPowerInc scriptbin.")
+				m.vp.SetContent("Configure your script repository below:\n\nUse the options on the right to manage your repository.\n\nUse Ctrl+Right or Ctrl+L to switch to the right pane.")
+				// Automatically switch focus to right pane for easier navigation
+				m.focus = FocusPreview
 			}
 		}
 	} else if m.activeTab == 1 && m.focus == FocusPreview {
@@ -312,6 +381,10 @@ func (m Model) View() string {
 	var footerText string
 	if m.activeTab == 0 && m.searchActive {
 		footerText = "'Enter' Apply • 'Esc' Cancel • Type to search..."
+	} else if m.activeTab == 1 && m.repositoryInputActive {
+		footerText = "'Enter' Save Repository • 'Esc' Cancel • Type repository URL"
+	} else if m.activeTab == 1 && (m.repositoryViewActive || m.repositoryResetActive) {
+		footerText = "'Esc' Back to Repository Options • 'Tab' Switch Tabs • 'q' Quit"
 	} else if m.activeTab == 0 {
 		if m.width < 80 {
 			// Short footer for small terminals
@@ -452,11 +525,23 @@ func (m Model) renderOptionsTab() string {
 	rightPanelWidth := ((m.width * 2) / 3) - 2
 	panelHeight := m.height - 10
 
-	leftContent := "Themes\n" + m.list.View()
+	leftContent := m.list.View()
 
 	var rightContent string
 	if m.selectedCategory == "color_schemes" {
 		rightContent = m.optionsRightList.View()
+	} else if m.selectedCategory == "repository" {
+		if m.repositoryInputActive {
+			// Show repository input interface
+			m.repositoryInput.SetWidth(rightPanelWidth - 8)
+			inputView := m.repositoryInput.View()
+			rightContent = "Enter Repository URL:\n\n" + inputView + "\n\n" + m.vp.View()
+		} else if m.repositoryViewActive || m.repositoryResetActive {
+			// Show dedicated screen for repository info or reset result
+			rightContent = m.vp.View() + "\n\n" + "Press Esc to go back to repository options"
+		} else {
+			rightContent = m.optionsRightList.View()
+		}
 	} else {
 		rightContent = m.vp.View()
 	}
@@ -467,6 +552,9 @@ func (m Model) renderOptionsTab() string {
 	if m.focus == FocusList {
 		leftBorderColor = m.theme.Current.Accent
 		rightBorderColor = lipgloss.Color("244")
+	} else if m.focus == FocusRepositoryInput {
+		leftBorderColor = lipgloss.Color("244")
+		rightBorderColor = m.theme.Current.Accent
 	} else {
 		leftBorderColor = lipgloss.Color("244")
 		rightBorderColor = m.theme.Current.Accent
@@ -532,21 +620,83 @@ func (m Model) renderAboutTab() string {
 func (m *Model) handleRepositoryAction(action string) {
 	switch action {
 	case "set_repo":
-		// For now, show a simple message about setting custom repo
-		// In a full implementation, you'd want a proper text input modal
-		m.vp.SetContent("To set a custom repository:\n\n1. The repository should be a Git repository containing scripts\n2. It should be publicly accessible or you should have appropriate credentials\n3. The URL should end with .git\n\nExample URLs:\n- https://github.com/yourusername/your-scripts.git\n- https://gitlab.com/yourusername/scripts.git\n\nNote: This feature requires a text input implementation.\nFor now, you can manually edit the config file at:\n~/.config/go-pwr/config.json\n\nAdd or modify the 'repo_url' field with your repository URL.")
+		// Activate repository input
+		m.repositoryInputActive = true
+		m.repositoryViewActive = false
+		m.repositoryResetActive = false
+		m.repositoryInput.SetActive(true)
+		m.repositoryInput.Reset()
+		// Pre-fill with current URL if it's not the default
+		if m.config.RepoURL != config.GetDefaultRepoURL() {
+			m.repositoryInput.SetValue(m.config.RepoURL)
+		}
+		m.focus = FocusRepositoryInput
+		m.vp.SetContent("Enter a Git repository URL ending with .git\n\nSupported formats:\n- https://github.com/username/repo.git\n- https://gitlab.com/username/repo.git\n- git@github.com:username/repo.git\n\nPress Enter to save, Esc to cancel")
 	case "reset_repo":
+		// Activate repository reset view
+		m.repositoryResetActive = true
+		m.repositoryInputActive = false
+		m.repositoryViewActive = false
+		m.focus = FocusPreview
+		
+		// Show loading message
+		m.vp.SetContent("Resetting repository to default...\n\nPlease wait while we switch back to RocketPowerInc scriptbin.")
+		
 		if err := config.ResetToDefaultRepo(); err != nil {
-			m.vp.SetContent("Failed to reset repository: " + err.Error())
+			m.vp.SetContent("❌ Failed to reset repository: " + err.Error())
 		} else {
-			// Update the config and refresh
-			m.config.RepoURL = config.GetDefaultRepoURL()
-			m.vp.SetContent("Repository reset to default RocketPowerInc scriptbin!\n\nRestart the application to load scripts from the default repository.")
+			// Update the config immediately
+			defaultRepo := config.GetDefaultRepoURL()
+			m.config.RepoURL = defaultRepo
+			
+			// Try to refresh repository immediately
+			if err := m.refreshRepository(); err != nil {
+				m.vp.SetContent("✅ Repository reset to default, but failed to refresh scripts: " + err.Error() + "\n\nPlease restart the application to see the changes.")
+			} else {
+				m.vp.SetContent(fmt.Sprintf("✅ Repository Successfully Reset!\n\n🔄 Reset to Default Repository:\n%s\n\n📁 Scripts Location:\n%s\n\n✨ Scripts have been refreshed and are ready to use.\nSwitch to the Scripts tab to see the default content.", 
+					defaultRepo, m.config.ScriptbinPath))
+			}
+			
 			// Update the repository items to show the new current repo
 			m.updateRepositoryItems()
 		}
 	case "view_repo":
-		m.vp.SetContent(fmt.Sprintf("Current Repository:\n%s\n\nThis is the Git repository that go-pwr uses to fetch scripts.\n\nDefault repository: %s", m.config.RepoURL, config.GetDefaultRepoURL()))
+		// Activate repository view
+		m.repositoryViewActive = true
+		m.repositoryInputActive = false
+		m.repositoryResetActive = false
+		m.focus = FocusPreview
+		
+		// Provide detailed current repository information with visual formatting
+		defaultRepo := config.GetDefaultRepoURL()
+		isDefault := m.config.RepoURL == defaultRepo
+		
+		var headerSection, statusSection, detailsSection, pathSection string
+		
+		if isDefault {
+			headerSection = "🏠 DEFAULT REPOSITORY"
+			statusSection = "✅ Status: Using RocketPowerInc's Official Scriptbin"
+		} else {
+			headerSection = "🔧 CUSTOM REPOSITORY"
+			statusSection = "⚙️  Status: Using Custom Repository"
+		}
+		
+		detailsSection = fmt.Sprintf("🌐 Current Repository URL:\n%s\n\n🏠 Default Repository URL:\n%s", 
+			m.config.RepoURL, defaultRepo)
+		
+		pathSection = fmt.Sprintf("📁 Local Scripts Path:\n%s\n\n💡 This is where go-pwr loads scripts from.", 
+			m.config.ScriptbinPath)
+		
+		// Repository type information
+		var repoTypeInfo string
+		if isDefault {
+			repoTypeInfo = "ℹ️  Repository Type: Official RocketPowerInc scriptbin\n   Contains curated, tested scripts for various platforms."
+		} else {
+			repoTypeInfo = "ℹ️  Repository Type: Custom\n   You can switch back to default using 'Reset to Default'."
+		}
+		
+		m.vp.SetContent(fmt.Sprintf("%s\n\n%s\n\n%s\n\n%s\n\n%s", 
+			headerSection, statusSection, detailsSection, pathSection, repoTypeInfo))
 	}
 }
 

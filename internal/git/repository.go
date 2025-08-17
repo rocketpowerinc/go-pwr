@@ -41,9 +41,14 @@ func EnsureRepository(cfg *config.Config) error {
 
 // getRepositoryPath generates a path for the repository based on the URL
 func getRepositoryPath(cfg *config.Config) string {
-	// If it's the default repository, use the original path
+	// If it's the default repository, use the default scriptbin path
 	if cfg.RepoURL == config.GetDefaultRepoURL() {
-		return cfg.ScriptbinPath
+		// Get the original default scriptbin path from config
+		homeDir, err := os.UserHomeDir()
+		if err != nil {
+			return cfg.ScriptbinPath // Fallback to current path
+		}
+		return filepath.Join(homeDir, "Downloads", "Temp", "scriptbin")
 	}
 	
 	// For custom repositories, create a unique directory name
@@ -53,7 +58,13 @@ func getRepositoryPath(cfg *config.Config) string {
 		repoName = repoName[:len(repoName)-4]
 	}
 	
-	// Use the parent directory of the original scriptbin path
-	parentDir := filepath.Dir(cfg.ScriptbinPath)
-	return filepath.Join(parentDir, "custom-"+repoName)
+	// Use the Downloads/Temp directory for consistency
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		// Fallback to using the parent directory of the current scriptbin path
+		parentDir := filepath.Dir(cfg.ScriptbinPath)
+		return filepath.Join(parentDir, "custom-"+repoName)
+	}
+	
+	return filepath.Join(homeDir, "Downloads", "Temp", "custom-"+repoName)
 }
