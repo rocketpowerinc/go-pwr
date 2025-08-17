@@ -1,7 +1,6 @@
 # PowerShell script for complete release automation
 
 param(
-  [string]$Version = "",
   [string]$PreviousVersion = "",
   [switch]$DryRun = $false,
   [switch]$Help = $false
@@ -12,38 +11,63 @@ if ($Help) {
   Write-Host "go-pwr Release Automation Script" -ForegroundColor Green
   Write-Host ""
   Write-Host "USAGE:" -ForegroundColor Yellow
-  Write-Host "  .\new-release.ps1 -Version <version> [-PreviousVersion <version>] [-DryRun] [-Help]"
+  Write-Host "  .\new-release.ps1 [-DryRun] [-Help]"
   Write-Host ""
   Write-Host "PARAMETERS:" -ForegroundColor Yellow
-  Write-Host "  -Version         New version to release (e.g., '1.0.8')"
   Write-Host "  -PreviousVersion Previous version for changelog (auto-detected if not provided)"
   Write-Host "  -DryRun          Show what would be done without actually doing it"
   Write-Host "  -Help            Show this help message"
   Write-Host ""
+  Write-Host "DESCRIPTION:" -ForegroundColor Yellow
+  Write-Host "  This script automatically calculates the next point release version"
+  Write-Host "  by incrementing the patch number from the latest git tag."
+  Write-Host "  For example: v1.0.8 → v1.0.9 → v1.0.10"
+  Write-Host ""
   Write-Host "WHAT THIS SCRIPT DOES:" -ForegroundColor Yellow
-  Write-Host "  1. Validates version format and git status"
-  Write-Host "  2. Updates version in cmd/go-pwr/main.go"
-  Write-Host "  3. Generates release notes template"
-  Write-Host "  4. Commits and pushes version changes"
-  Write-Host "  5. Builds all platform binaries"
-  Write-Host "  6. Creates proper git tag and GitHub release"
-  Write-Host "  7. Verifies installation works correctly"
+  Write-Host "  1. Auto-detects latest version from git tags"
+  Write-Host "  2. Calculates next point release (patch increment)"
+  Write-Host "  3. Updates version in cmd/go-pwr/main.go"
+  Write-Host "  4. Generates release notes template"
+  Write-Host "  5. Commits and pushes version changes"
+  Write-Host "  6. Builds all platform binaries"
+  Write-Host "  7. Creates proper git tag and GitHub release"
+  Write-Host "  8. Verifies installation works correctly"
   Write-Host ""
   Write-Host "EXAMPLES:" -ForegroundColor Yellow
-  Write-Host "  .\new-release.ps1 -Version 1.0.9                    # Full release"
-  Write-Host "  .\new-release.ps1 -Version 1.0.9 -DryRun            # Preview changes"
+  Write-Host "  .\new-release.ps1                                   # Create next point release"
+  Write-Host "  .\new-release.ps1 -DryRun                           # Preview next release"
   Write-Host ""
   return
 }
 
-# Validate version parameter
-if ($Version -eq "") {
-  Write-Host "✗ Version parameter is required" -ForegroundColor Red
-  Write-Host "Usage: .\new-release.ps1 -Version <version> [-DryRun] [-Help]" -ForegroundColor Yellow
-  Write-Host "Example: .\new-release.ps1 -Version 1.0.9" -ForegroundColor Yellow
-  Write-Host ""
-  Write-Host "For more information, run: .\new-release.ps1 -Help" -ForegroundColor Cyan
+# Auto-detect latest version from tags and calculate next version
+$tags = git tag --sort=-version:refname | Where-Object { $_ -match '^v\d+\.\d+\.\d+$' }
+$latestTag = if ($tags.Count -gt 0) { $tags[0] } else { $null }
+$latestVersion = if ($latestTag) { $latestTag -replace '^v', '' } else { "1.0.0" }
+
+# Calculate next point release
+if ($latestVersion -match '^(\d+)\.(\d+)\.(\d+)$') {
+  $major = [int]$matches[1]
+  $minor = [int]$matches[2]
+  $patch = [int]$matches[3]
+  
+  # Increment patch version
+  $patch++
+  $Version = "$major.$minor.$patch"
+  
+  Write-Host "🔍 Auto-calculating next version..." -ForegroundColor Cyan
+  Write-Host "  Latest tag: $latestTag" -ForegroundColor White
+  Write-Host "  Latest version: $latestVersion" -ForegroundColor White
+  Write-Host "  Next version: $Version" -ForegroundColor Green
+} else {
+  Write-Host "✗ Could not parse latest version: $latestVersion" -ForegroundColor Red
   exit 1
+}
+
+# Set PreviousVersion for changelog if not provided
+if ($PreviousVersion -eq "") {
+  $PreviousVersion = $latestVersion
+  Write-Host "✓ Using previous version for changelog: $PreviousVersion" -ForegroundColor Yellow
 }
 
 # Validate version format
@@ -52,6 +76,7 @@ if ($Version -notmatch '^\d+\.\d+\.\d+$') {
   exit 1
 }
 
+Write-Host ""
 Write-Host "🚀 Starting release process for go-pwr v$Version" -ForegroundColor Green
 Write-Host ""
 
@@ -68,19 +93,6 @@ if ($gitStatus -and -not $DryRun) {
   Write-Host "Uncommitted changes:" -ForegroundColor Yellow
   $gitStatus | ForEach-Object { Write-Host "  $_" -ForegroundColor Yellow }
   exit 1
-}
-
-# Auto-detect previous version if not provided
-if ($PreviousVersion -eq "") {
-  $tags = git tag --sort=-version:refname | Where-Object { $_ -match '^v\d+\.\d+\.\d+$' }
-  if ($tags.Count -gt 0) {
-    $PreviousVersion = $tags[0] -replace '^v', ''
-    Write-Host "✓ Detected previous version: $PreviousVersion" -ForegroundColor Yellow
-  }
-  else {
-    $PreviousVersion = "1.0.0"
-    Write-Host "✓ No previous tags found, using: $PreviousVersion" -ForegroundColor Yellow
-  }
 }
 
 # Check if version already exists
@@ -176,6 +188,7 @@ $template = @"
 ``````bash
 # Install latest version
 go install -v github.com/rocketpowerinc/go-pwr/cmd/go-pwr@latest
+
 
 # Or install specific version
 go install -v github.com/rocketpowerinc/go-pwr/cmd/go-pwr@v$Version
@@ -397,5 +410,5 @@ else {
   Write-Host "  9. Verify installation" -ForegroundColor Gray
   Write-Host ""
   Write-Host "To execute the release, run without -DryRun flag:" -ForegroundColor Cyan
-  Write-Host "  .\new-release.ps1 -Version $Version" -ForegroundColor White
+  Write-Host "  .\new-release.ps1" -ForegroundColor White
 }
