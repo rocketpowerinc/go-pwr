@@ -59,7 +59,8 @@ if ($latestVersion -match '^(\d+)\.(\d+)\.(\d+)$') {
   Write-Host "  Latest tag: $latestTag" -ForegroundColor White
   Write-Host "  Latest version: $latestVersion" -ForegroundColor White
   Write-Host "  Next version: $Version" -ForegroundColor Green
-} else {
+}
+else {
   Write-Host "✗ Could not parse latest version: $latestVersion" -ForegroundColor Red
   exit 1
 }
