@@ -495,9 +495,8 @@ func (m Model) renderOptionsTab() string {
 func (m Model) renderAboutTab() string {
 	panelHeight := m.height - 6
 
-	// ASCII art for the logo - use theme accent color for the logo
-	logoStyle := lipgloss.NewStyle().Foreground(m.theme.Current.Accent).Bold(true)
-	asciiArt := logoStyle.Render("      ██████╗  ██████╗  ██████╗██╗  ██╗███████╗████████╗\n" +
+	// ASCII art for the logo - raw string without pre-styling
+	asciiArt := "      ██████╗  ██████╗  ██████╗██╗  ██╗███████╗████████╗\n" +
 		"      ██╔══██╗██╔═══██╗██╔════╝██║ ██╔╝██╔════╝╚══██╔══╝\n" +
 		"      ██████╔╝██║   ██║██║     █████╔╝ █████╗     ██║   \n" +
 		"      ██╔══██╗██║   ██║██║     ██╔═██╗ ██╔══╝     ██║   \n" +
@@ -509,11 +508,10 @@ func (m Model) renderAboutTab() string {
 		" ██████╔╝██║   ██║██║ █╗ ██║█████╗  ██████╔╝     ██║██╔██╗ ██║██║     \n" +
 		" ██╔═══╝ ██║   ██║██║███╗██║██╔══╝  ██╔══██╗     ██║██║╚██╗██║██║     \n" +
 		" ██║     ╚██████╔╝╚███╔███╔╝███████╗██║  ██║     ██║██║ ╚████║╚██████╗\n" +
-		" ╚═╝      ╚═════╝  ╚══╝╚══╝ ╚══════╝╚═╝  ╚═╝     ╚═╝╚═╝  ╚═══╝ ╚═════╝")
+		" ╚═╝      ╚═════╝  ╚══╝╚══╝ ╚══════╝╚═╝  ╚═╝     ╚═╝╚═╝  ╚═══╝ ╚═════╝"
 
-	// Description text using theme primary color
-	descriptionStyle := lipgloss.NewStyle().Foreground(m.theme.Current.Primary)
-	description := descriptionStyle.Render("\n\nA cross-platform script browser powered by RocketPowerInc.\n\nBuilt with Go and powered by Charm_ Bubble Tea framework.\n\nVisit us at https://github.com/rocketpowerinc")
+	// Description text
+	description := "\n\nA cross-platform script browser powered by RocketPowerInc.\n\nBuilt with Go and powered by Charm_ Bubble Tea framework.\n\nVisit us at https://github.com/rocketpowerinc"
 
 	aboutContent := asciiArt + description
 
@@ -522,6 +520,8 @@ func (m Model) renderAboutTab() string {
 		BorderForeground(m.theme.Current.Primary).
 		Width(m.width - 4).
 		Height(panelHeight).
+		Foreground(m.theme.Current.Accent).
+		Bold(true).
 		Align(lipgloss.Center, lipgloss.Center).
 		Render(aboutContent)
 
