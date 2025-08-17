@@ -156,6 +156,6 @@ set -euo pipefail
 
 **General:**
 
-- `q` or `Ctrl+C` - Quit application
+- `q` or `Ctrl+C` - Quit application!
 
 ---
