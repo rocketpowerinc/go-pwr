@@ -12,7 +12,7 @@ import (
 	"github.com/rocketpowerinc/go-pwr/internal/config"
 )
 
-const version = "1.0.8"
+const version = "1.0.9"
 
 // These will be set at build time using -ldflags
 var (
