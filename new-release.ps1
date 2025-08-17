@@ -252,16 +252,16 @@ if (-not $DryRun) {
   Write-Host ""
   Write-Host "Opening release notes file for editing..." -ForegroundColor Cyan
   Start-Process notepad.exe $releaseNotesFile
-  
+
   Write-Host ""
   Read-Host "Press Enter when you've finished editing the release notes and are ready to continue"
-  
+
   # Step 4: Commit and push changes
   Write-Host ""
   Write-Host "💾 Step 4: Committing and pushing changes..." -ForegroundColor Cyan
   git add cmd/go-pwr/main.go $releaseNotesFile
   git commit -m "bump: Update version to $Version and add release notes"
-  
+
   if ($LASTEXITCODE -eq 0) {
     git push origin main
     if ($LASTEXITCODE -eq 0) {
@@ -276,30 +276,30 @@ if (-not $DryRun) {
     Write-Host "✗ Failed to commit changes" -ForegroundColor Red
     exit 1
   }
-  
+
   # Step 5: Build all platforms
   Write-Host ""
   Write-Host "🔨 Step 5: Building all platforms..." -ForegroundColor Cyan
   & ".\build-all.ps1" -Version $Version
-  
+
   if ($LASTEXITCODE -ne 0) {
     Write-Host "✗ Build failed" -ForegroundColor Red
     exit 1
   }
-  
+
   # Step 6: Create git tag and GitHub release
   Write-Host ""
   Write-Host "🏷️  Step 6: Creating git tag and GitHub release..." -ForegroundColor Cyan
-  
+
   # Create and push tag
   git tag -a "v$Version" -m "go-pwr v$Version"
   git push origin "v$Version"
-  
+
   if ($LASTEXITCODE -ne 0) {
     Write-Host "✗ Failed to create/push git tag" -ForegroundColor Red
     exit 1
   }
-  
+
   # Check if gh CLI is available
   $ghAvailable = Get-Command "gh" -ErrorAction SilentlyContinue
   if (-not $ghAvailable) {
@@ -308,10 +308,10 @@ if (-not $DryRun) {
     Write-Host "  Manual release: https://github.com/rocketpowerinc/go-pwr/releases/new" -ForegroundColor Yellow
     exit 1
   }
-  
+
   # Create GitHub release
   gh release create "v$Version" build/* --title "go-pwr v$Version" --notes-file $releaseNotesFile --latest
-  
+
   if ($LASTEXITCODE -eq 0) {
     Write-Host "✓ GitHub release created successfully!" -ForegroundColor Green
     Write-Host "  View release: https://github.com/rocketpowerinc/go-pwr/releases/tag/v$Version" -ForegroundColor Cyan
@@ -320,31 +320,31 @@ if (-not $DryRun) {
     Write-Host "✗ Failed to create GitHub release" -ForegroundColor Red
     exit 1
   }
-  
+
   # Step 7: Update local binaries
   Write-Host ""
   Write-Host "🔄 Step 7: Updating local binaries..." -ForegroundColor Cyan
-  
+
   # Copy built binary to local directory
   Copy-Item "build/go-pwr-windows-amd64.exe" "go-pwr.exe" -Force
   Write-Host "✓ Updated local go-pwr.exe" -ForegroundColor Green
-  
+
   # Copy to Go bin directory if it exists
   $goBinPath = Join-Path $env:GOPATH "bin\go-pwr.exe"
   if (-not $env:GOPATH) {
     $goBinPath = Join-Path $env:USERPROFILE "go\bin\go-pwr.exe"
   }
-  
+
   $goBinDir = Split-Path $goBinPath -Parent
   if (Test-Path $goBinDir) {
     Copy-Item "build/go-pwr-windows-amd64.exe" $goBinPath -Force
     Write-Host "✓ Updated Go bin directory: $goBinPath" -ForegroundColor Green
   }
-  
+
   # Step 8: Verify installation
   Write-Host ""
   Write-Host "✅ Step 8: Verifying installation..." -ForegroundColor Cyan
-  
+
   # Test local binary
   $localVersion = & "./go-pwr.exe" -v 2>$null | Select-String "go-pwr v"
   if ($localVersion -and $localVersion.ToString().Contains("v$Version")) {
@@ -353,16 +353,16 @@ if (-not $DryRun) {
   else {
     Write-Host "⚠ Local binary version check failed" -ForegroundColor Yellow
   }
-  
+
   # Test Go install after a brief delay
   Write-Host ""
   Write-Host "Testing go install after release (may take a moment for Go proxy to update)..." -ForegroundColor Cyan
   Start-Sleep -Seconds 10
-  
+
   $tempDir = Join-Path $env:TEMP "go-pwr-release-test"
   New-Item -ItemType Directory -Path $tempDir -Force | Out-Null
   Push-Location $tempDir
-  
+
   try {
     go install -v "github.com/rocketpowerinc/go-pwr/cmd/go-pwr@v$Version"
     if ($LASTEXITCODE -eq 0) {
@@ -376,7 +376,7 @@ if (-not $DryRun) {
     Pop-Location
     Remove-Item -Recurse -Force $tempDir -ErrorAction SilentlyContinue
   }
-  
+
   # Final summary
   Write-Host ""
   Write-Host "🎉 Release v$Version completed successfully!" -ForegroundColor Green
@@ -394,7 +394,7 @@ if (-not $DryRun) {
   Write-Host "  Release: https://github.com/rocketpowerinc/go-pwr/releases/tag/v$Version" -ForegroundColor Cyan
   Write-Host "  Install: go install -v github.com/rocketpowerinc/go-pwr/cmd/go-pwr@v$Version" -ForegroundColor Cyan
   Write-Host ""
-  
+
 }
 else {
   Write-Host ""
