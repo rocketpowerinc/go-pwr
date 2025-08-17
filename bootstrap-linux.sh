@@ -149,7 +149,42 @@ if [ "$INSTALL_DEPENDENCIES" = true ]; then
                 echo -e "${RED}⚠️ Some core dependencies may have failed to install${NC}"
             fi
 
+            echo -e "${CYAN}Installing PowerShell 7+ (optional)...${NC}"
+            if sudo pacman -S --noconfirm powershell; then
+                echo -e "${GREEN}✓ PowerShell 7+ installed successfully${NC}"
+            else
+                echo -e "${YELLOW}⚠️ PowerShell 7+ installation failed (try AUR: powershell-bin)${NC}"
+            fi
+
             echo -e "${YELLOW}Note: glow and gum may need to be installed via AUR${NC}"
+            ;;
+
+        opensuse*|sles)
+            echo -e "${CYAN}Installing Go...${NC}"
+            if sudo zypper install -y go; then
+                echo -e "${GREEN}✓ Go installed successfully${NC}"
+            else
+                echo -e "${RED}⚠️ Failed to install Go${NC}"
+            fi
+
+            echo -e "${CYAN}Installing core dependencies...${NC}"
+            if sudo zypper install -y git gh jq make bat tmux curl wget; then
+                echo -e "${GREEN}✓ Core dependencies installed successfully${NC}"
+            else
+                echo -e "${RED}⚠️ Some core dependencies may have failed to install${NC}"
+            fi
+
+            echo -e "${CYAN}Installing PowerShell 7+ (optional)...${NC}"
+            # Add Microsoft repository for PowerShell
+            sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
+            sudo zypper addrepo --name 'Microsoft PowerShell' --check --refresh https://packages.microsoft.com/rhel/7/prod/ microsoft-powershell
+            if sudo zypper install -y powershell; then
+                echo -e "${GREEN}✓ PowerShell 7+ installed successfully${NC}"
+            else
+                echo -e "${YELLOW}⚠️ PowerShell 7+ installation failed (optional dependency)${NC}"
+            fi
+
+            echo -e "${YELLOW}Note: glow and gum may need to be installed manually or via OBS${NC}"
             ;;
 
         *)
