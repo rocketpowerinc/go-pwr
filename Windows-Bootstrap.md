@@ -108,7 +108,7 @@ go-pwr
 Or with full path:
 
 ```powershell
-$env:USERPROFILE\go\bin\go-pwr.exe
+& "$env:USERPROFILE\go\bin\go-pwr.exe"
 ```
 
 ## ⚡ Dev Alias (Advanced Users)
