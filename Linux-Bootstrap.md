@@ -234,3 +234,4 @@ environment.shellInit = ''
   export PATH="$HOME/.local/bin:$PATH"
 '';
 ```
+- THEN REMEMBER TO LOG OUT AND BACK IN FOR THE PATH TO TAKE EFFECT!
