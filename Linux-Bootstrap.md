@@ -220,4 +220,17 @@ go-pwr
 '
 ```
 
-- To launch  `go-pwr` export path with `export PATH="$HOME/.local/bin:$PATH"` that will work until the terminal is closed. Add path to configuration.nix to add it permanently.
+- To launch  `go-pwr` export path with `export PATH="$HOME/.local/bin:$PATH"` that will work until the terminal is closed.
+- Adding path to configuration.nix permanently.
+  - Preferred Method - Add this inside your Home-Manager block:
+```
+home.sessionPath = [
+  "$HOME/.local/bin"
+];
+```
+  - Or I could do it system wide with
+```
+environment.shellInit = ''
+  export PATH="$HOME/.local/bin:$PATH"
+'';
+```
