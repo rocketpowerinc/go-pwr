@@ -7,6 +7,7 @@ Complete installation guide for **go-pwr** on Linux.
 Visit: https://flathub.org/setup
 Visit: https://snapcraft.io/docs/installing-snapd
 
+
 ## 📋 Prerequisites
 
 ### Go Installation
@@ -190,3 +191,33 @@ go-pwr
 export GO_PWR_NO_TMUX_WARNING=1
 go-pwr
 ```
+
+# Nix OS
+```
+# Install required runtime deps
+nix-env -iA nixos.git
+nix-env -iA nixos.gnome-terminal
+
+# Build + install + launch go-pwr
+nix-shell -p go git --run '
+set -euo pipefail
+
+TMPDIR=$(mktemp -d)
+trap "rm -rf \"$TMPDIR\"" EXIT
+
+cd "$TMPDIR"
+git clone https://github.com/rocketpowerinc/go-pwr.git
+cd go-pwr
+
+go build -o go-pwr ./cmd/go-pwr
+
+mkdir -p "$HOME/.local/bin"
+install -m755 go-pwr "$HOME/.local/bin/go-pwr"
+
+# Add to PATH for this run and launch
+export PATH="$HOME/.local/bin:$PATH"
+go-pwr
+'
+```
+
+- To launch  `go-pwr` export path with `export PATH="$HOME/.local/bin:$PATH"` that will work until the terminal is closed. Add path to configuration.nix to add it permanently.
