@@ -197,6 +197,7 @@ go-pwr
 # Install required runtime deps
 nix-env -iA nixos.git
 nix-env -iA nixos.gnome-terminal
+nix-env -iA nixos.just
 
 # Build + install + launch go-pwr
 nix-shell -p go git --run '
