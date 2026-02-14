@@ -153,7 +153,7 @@ EOF
 Then reload your shell:
 
 ```bash
-source ~/.zshrc
+source ~/.bashrc
 ```
 
 ## 🚀 Usage
