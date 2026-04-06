@@ -36,6 +36,8 @@ source ~/.bashrc
 ```
 
 ## 📋 Dependencies
+- FYI ALL DISTRO NEED TO HAVE THE gnome-terminal in order for scripts to work this is a bug I need to fix ASAP
+  - `sudo apt install gnome-terminal`
 
 ```bash
 # Ubuntu/Debian - Core dependencies
