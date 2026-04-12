@@ -75,6 +75,13 @@ sudo dnf install -y powershell
 
 # 🚀 Installation Methods
 
+### GOOGLE DRIVE PUBLIC LINK (NEW METHOD WITHOUT INSTALL GO)
+```bash
+wget -O go-pwr "https://docs.google.com/uc?export=download&id=1LaGHTYWZmsJ_nmjw_S-0W7l4BTEyp-MJ" && \
+chmod +x go-pwr && \
+sudo mv go-pwr /usr/bin/go-pwr
+```
+
 ### Method 1: Go Install (Recommended)
 
 ```bash
